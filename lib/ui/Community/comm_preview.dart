@@ -28,7 +28,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
       // Lấy dữ liệu bài viết chính
       DocumentSnapshot postSnapshot =
           await FirebaseFirestore.instance
-              .collection("posts")
+              .collection("recipes")
               .doc(widget.postId)
               .get();
 
