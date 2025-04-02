@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1098724532915",
+    "project_id": "flavouries-b202d",
+    "storage_bucket": "flavouries-b202d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1098724532915:android:d2f547bcf03e389c2906c6",
+        "android_client_info": {
+          "package_name": "com.example.flavouries"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhhryDN-2C0ArBb4elZZ12lc3yDdmDg3Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
