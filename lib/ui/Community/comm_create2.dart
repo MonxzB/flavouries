@@ -36,8 +36,8 @@ class _IngredientScreenState extends State<IngredientScreen> {
   Future<void> _saveIngredients() async {
     try {
       // Lưu dữ liệu Step 1 vào Firestore
-      DocumentReference postRef = await FirebaseFirestore.instance
-          .collection("posts")
+      DocumentReference recipeRef = await FirebaseFirestore.instance
+          .collection("recipes")
           .add(widget.postData);
 
       // Lưu danh sách nguyên liệu vào Subcollection "ingredients"
@@ -45,7 +45,7 @@ class _IngredientScreenState extends State<IngredientScreen> {
         if (ingredient["name"]!.isNotEmpty &&
             ingredient["quantity"]!.isNotEmpty &&
             ingredient["unit"]!.isNotEmpty) {
-          await postRef.collection("ingredients").add(ingredient);
+          await recipeRef.collection("ingredients").add(ingredient);
         }
       }
 
@@ -53,7 +53,7 @@ class _IngredientScreenState extends State<IngredientScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => RecipeStepsScreen(postId: postRef.id),
+          builder: (context) => RecipeStepsScreen(recipeId: recipeRef.id),
         ),
       );
     } catch (e) {

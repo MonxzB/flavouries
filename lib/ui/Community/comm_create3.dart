@@ -6,9 +6,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertest/ui/Community/comm_preview.dart';
 
 class RecipeStepsScreen extends StatefulWidget {
-  final String postId; // Nhận postId từ Step 2
+  final String recipeId; // Nhận postId từ Step 2
 
-  RecipeStepsScreen({required this.postId});
+  RecipeStepsScreen({required this.recipeId});
 
   @override
   _RecipeStepsScreenState createState() => _RecipeStepsScreenState();
@@ -74,7 +74,7 @@ class _RecipeStepsScreenState extends State<RecipeStepsScreen> {
 
         await FirebaseFirestore.instance
             .collection("posts")
-            .doc(widget.postId)
+            .doc(widget.recipeId)
             .collection("steps")
             .add({
               "step_number": i + 1,
@@ -87,7 +87,7 @@ class _RecipeStepsScreenState extends State<RecipeStepsScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PostPreviewScreen(postId: widget.postId),
+          builder: (context) => PostPreviewScreen(recipeId: widget.recipeId),
         ),
       );
     } catch (e) {

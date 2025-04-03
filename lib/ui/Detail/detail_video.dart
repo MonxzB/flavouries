@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertest/components/post_options_popup.dart';
+import 'package:fluttertest/components/share.dart';
 import 'package:video_player/video_player.dart';
 
 class RecipeVideoScreen extends StatefulWidget {
@@ -230,19 +232,12 @@ class _RecipeVideoScreenState extends State<RecipeVideoScreen> {
   }
 
   void showSharePopup(BuildContext context) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text("Chia sẻ công thức"),
-            content: Text("Bạn có thể chia sẻ link video này với bạn bè."),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("Đóng"),
-              ),
-            ],
-          ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+      ),
+      builder: (BuildContext ctx) => ShareBottomSheet(),
     );
   }
 }

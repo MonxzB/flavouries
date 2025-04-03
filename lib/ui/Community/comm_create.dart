@@ -32,7 +32,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Future<String?> _uploadImageToFirebase(File imageFile) async {
     try {
       // 🔹 Generate a unique filename
-      String fileName = "posts/${DateTime.now().millisecondsSinceEpoch}.jpg";
+      String fileName = "recipes/${DateTime.now().millisecondsSinceEpoch}.jpg";
       Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
 
       // 🔹 Upload file

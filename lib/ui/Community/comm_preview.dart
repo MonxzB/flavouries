@@ -3,9 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertest/ui/Community/comm_home.dart';
 
 class PostPreviewScreen extends StatefulWidget {
-  final String postId;
+  final String recipeId;
 
-  PostPreviewScreen({required this.postId});
+  PostPreviewScreen({required this.recipeId});
 
   @override
   _PostPreviewScreenState createState() => _PostPreviewScreenState();
@@ -22,14 +22,14 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
     _fetchPostData();
   }
 
-  // 📌 Lấy dữ liệu từ Firestore
+  // 📌 Fetch data from Firestore
   Future<void> _fetchPostData() async {
     try {
-      // Lấy dữ liệu bài viết chính
+      // Get the main post data
       DocumentSnapshot postSnapshot =
           await FirebaseFirestore.instance
               .collection("recipes")
-              .doc(widget.postId)
+              .doc(widget.recipeId)
               .get();
 
       if (!postSnapshot.exists) {
@@ -41,11 +41,11 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
         postData = postSnapshot.data() as Map<String, dynamic>;
       });
 
-      // Lấy danh sách nguyên liệu
+      // Get ingredients data
       QuerySnapshot ingredientSnapshot =
           await FirebaseFirestore.instance
-              .collection("posts")
-              .doc(widget.postId)
+              .collection("recipes")
+              .doc(widget.recipeId)
               .collection("ingredients")
               .get();
 
@@ -56,11 +56,11 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                 .toList();
       });
 
-      // Lấy danh sách bước làm
+      // Get recipe steps data
       QuerySnapshot stepsSnapshot =
           await FirebaseFirestore.instance
-              .collection("posts")
-              .doc(widget.postId)
+              .collection("recipes")
+              .doc(widget.recipeId)
               .collection("steps")
               .orderBy("step_number")
               .get();
@@ -89,13 +89,14 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 🔹 Hình ảnh công thức
+                    // Post image
                     postData?["imageUrl"] != null &&
                             postData?["imageUrl"].isNotEmpty
                         ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
-                            postData?["imageUrl"],
+                            postData?["imageUrl"] ??
+                                'https://via.placeholder.com/150', // Fallback image
                             width: double.infinity,
                             height: 200,
                             fit: BoxFit.cover,
@@ -105,7 +106,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
 
                     SizedBox(height: 12),
 
-                    // 🔹 Tiêu đề món ăn
+                    // Dish name
                     Text(
                       postData?["dishName"] ?? "Không có tiêu đề",
                       style: TextStyle(
@@ -116,7 +117,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
 
                     SizedBox(height: 12),
 
-                    // 🔹 Danh sách nguyên liệu
+                    // Ingredients list
                     Text(
                       "Nguyên liệu",
                       style: TextStyle(
@@ -141,7 +142,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
 
                     SizedBox(height: 12),
 
-                    // 🔹 Công thức chế biến
+                    // Recipe steps
                     Text(
                       "Công thức",
                       style: TextStyle(
@@ -167,7 +168,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
 
                     SizedBox(height: 20),
 
-                    // 🔹 Nút "Đăng"
+                    // Submit Button
                     Center(
                       child: ElevatedButton(
                         onPressed: () => _showSuccessPopup(context),
@@ -210,7 +211,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
     );
   }
 
-  // 📌 **Hiển thị nguyên liệu**
+  // 📌 **Ingredient Item**
   Widget _buildIngredientItem(String name, String quantity) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
@@ -227,7 +228,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
     );
   }
 
-  // 📌 **Hiển thị bước chế biến**
+  // 📌 **Step Item**
   Widget _buildStep(int stepNumber, String description, String imageUrl) {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
@@ -259,7 +260,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
     );
   }
 
-  // 📌 **Hiển thị Popup "Đăng bài thành công!"**
+  // 📌 **Success Popup**
   void _showSuccessPopup(BuildContext context) {
     showDialog(
       context: context,
