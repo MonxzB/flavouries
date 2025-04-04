@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluttertest/ui/Admin/AdminComment/admin_cmt.dart';
+import 'package:fluttertest/ui/Admin/AdminFavourite/admin_favorite.dart';
+import 'package:fluttertest/ui/Admin/AdminRecipe/admin_recipe.dart';
+import 'package:fluttertest/ui/Admin/AdminUser/admin_user.dart';
+import 'package:fluttertest/ui/Community/comm_create.dart';
 
 class AdminHome extends StatefulWidget {
   @override
@@ -11,6 +16,7 @@ class _AdminHomeState extends State<AdminHome> {
   int usersCount = 0;
   int recipesCount = 0;
   int favouritesCount = 0;
+  int commentsCount = 0;
 
   String userName = ''; // Store the user's name
   String userAvatarUrl = ''; // Store the user's avatar URL
@@ -32,11 +38,14 @@ class _AdminHomeState extends State<AdminHome> {
           await FirebaseFirestore.instance.collection('recipes').get();
       var favouritesSnapshot =
           await FirebaseFirestore.instance.collection('favourites').get();
+      var commentsSnapshot =
+          await FirebaseFirestore.instance.collection('recipe_comments').get();
 
       setState(() {
         usersCount = usersSnapshot.size; // Total number of users
         recipesCount = recipesSnapshot.size; // Total number of recipes
         favouritesCount = favouritesSnapshot.size; // Total number of favourites
+        commentsCount = commentsSnapshot.size; // Total number of comments
       });
     } catch (e) {
       print("Error fetching document counts: $e");
@@ -51,9 +60,7 @@ class _AdminHomeState extends State<AdminHome> {
         // Retrieve the user document from Firestore
         DocumentSnapshot userDoc =
             await FirebaseFirestore.instance
-                .collection(
-                  'users',
-                ) // Assuming you store user data in 'users' collection
+                .collection('users')
                 .doc(user.uid)
                 .get();
 
@@ -73,41 +80,7 @@ class _AdminHomeState extends State<AdminHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.only(
-            left: 16.0,
-          ), // Add padding to the left of leading
-          child:
-              userAvatarUrl.isNotEmpty
-                  ? CircleAvatar(backgroundImage: NetworkImage(userAvatarUrl))
-                  : CircleAvatar(
-                    child: Icon(Icons.person, color: Colors.white),
-                    backgroundColor: Colors.grey,
-                  ),
-        ),
-        title: Padding(
-          padding: const EdgeInsets.only(
-            right: 16.0,
-          ), // Add padding to the right of title
-          child: Row(
-            children: [
-              SizedBox(width: 10),
-              Text(
-                'Chào $userName', // Hiển thị tên người dùng
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        centerTitle: true,
-        actions: [Icon(Icons.notifications, color: Colors.black)],
-      ),
+      appBar: _buildAppBar(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -124,11 +97,11 @@ class _AdminHomeState extends State<AdminHome> {
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+                crossAxisCount: 2, // Adjusted to 2 columns for better layout
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
-              itemCount: 3, // Total 3 cards
+              itemCount: 4, // Correct item count based on cardData length
               itemBuilder: (context, index) {
                 // Define card data with count values
                 List<Map<String, dynamic>> cardData = [
@@ -137,90 +110,87 @@ class _AdminHomeState extends State<AdminHome> {
                     'title': '$usersCount',
                     'color': Colors.green.shade100,
                     'label': 'Người dùng',
+                    'page':
+                        AdminUser(), // Assign the corresponding page to navigate to
                   },
                   {
                     'icon': Icons.receipt,
                     'title': '$recipesCount',
                     'color': Colors.blue.shade100,
                     'label': 'Công thức',
+                    'page': AdminRecipeScreen(), // Page for recipes (example)
                   },
                   {
                     'icon': Icons.favorite,
                     'title': '$favouritesCount',
                     'color': Colors.orange.shade100,
                     'label': 'Yêu thích',
+                    'page':
+                        AdminFavouritesScreen(), // Page for favourites (example)
+                  },
+                  {
+                    'icon': Icons.comment,
+                    'title': '$commentsCount',
+                    'color': Colors.orange.shade100,
+                    'label': 'Bình luận',
+                    'page':
+                        AdminCommentsScreen(), // Page for comments (example)
                   },
                 ];
 
-                return Container(
-                  alignment: Alignment.center,
-                  padding: EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: cardData[index]['color'],
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(cardData[index]['icon'], color: Colors.green),
-                      SizedBox(height: 8),
-                      Text(
-                        cardData[index]['title'],
-                        style: TextStyle(color: Colors.green, fontSize: 18),
+                return GestureDetector(
+                  onTap: () {
+                    // When a card is tapped, navigate to the corresponding page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) =>
+                                cardData[index]['page'], // Navigate to the assigned page
                       ),
-                      Text(
-                        cardData[index]['label'],
-                        style: TextStyle(color: Colors.green, fontSize: 12),
-                      ),
-                    ],
+                    );
+                  },
+                  child: Container(
+                    alignment: Alignment.center,
+                    height: 120, // Set the height to 120px
+                    padding: EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: cardData[index]['color'],
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(cardData[index]['icon'], color: Colors.green),
+                        SizedBox(height: 8),
+                        Text(
+                          cardData[index]['title'],
+                          style: TextStyle(color: Colors.green, fontSize: 18),
+                        ),
+                        Text(
+                          cardData[index]['label'],
+                          style: TextStyle(color: Colors.green, fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
             ),
 
-            SizedBox(height: 100),
+            SizedBox(height: 60),
 
             // Buttons
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                // Điều hướng sang CreatePostScreen khi nhấn nút
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CreatePostScreen()),
+                );
+              },
               child: Text(
                 'Thêm mới công thức',
-                style: TextStyle(
-                  color: Colors.white, // Đặt màu chữ là màu trắng
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  side: BorderSide(color: Colors.green),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              ),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {},
-              child: Text(
-                'Thêm mới bài viết',
-                style: TextStyle(
-                  color: Colors.white, // Đặt màu chữ là màu trắng
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  side: BorderSide(color: Colors.green),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              ),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {},
-              child: Text(
-                'Thêm mới đầu bếp',
                 style: TextStyle(
                   color: Colors.white, // Đặt màu chữ là màu trắng
                 ),
@@ -237,6 +207,41 @@ class _AdminHomeState extends State<AdminHome> {
           ],
         ),
       ),
+    );
+  }
+
+  // 📌 **AppBar**
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 16.0),
+        child:
+            userAvatarUrl.isNotEmpty
+                ? CircleAvatar(backgroundImage: NetworkImage(userAvatarUrl))
+                : CircleAvatar(
+                  child: Icon(Icons.person, color: Colors.white),
+                  backgroundColor: Colors.grey,
+                ),
+      ),
+      title: Padding(
+        padding: const EdgeInsets.only(right: 16.0),
+        child: Row(
+          children: [
+            SizedBox(width: 10),
+            Text(
+              'Chào $userName', // Hiển thị tên người dùng
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+      centerTitle: true,
+      actions: [Icon(Icons.notifications, color: Colors.black)],
     );
   }
 }

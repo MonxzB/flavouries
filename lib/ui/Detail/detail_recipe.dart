@@ -112,6 +112,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Ảnh công thức
             Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15),
@@ -119,6 +120,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
               ),
             ),
             const SizedBox(height: 20),
+
+            // Tiêu đề và mô tả công thức
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -139,6 +142,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
               ),
             ),
             const SizedBox(height: 20),
+
+            // Thông tin dinh dưỡng
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -155,6 +160,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
               ),
             ),
             SizedBox(height: 20),
+
+            // Tab cho Nguyên liệu và Các bước
             Container(
               child: TabBar(
                 controller: _tabController,
@@ -170,30 +177,31 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                 children: [_buildIngredientsList(), _buildStepsList()],
               ),
             ),
-            // 📌 Thêm phần gợi ý các recipe khác
+
+            // Gợi ý công thức khác
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start, // Đảm bảo phần này canh lề trái
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(left: 16), // Lề trái 16px
+                    padding: const EdgeInsets.only(
+                      left: 16,
+                    ), // Lề trái 16px cho tiêu đề
                     child: Text(
                       "Gợi ý công thức khác",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
-                      textAlign: TextAlign.start, // Canh lề trái cho tiêu đề
                     ),
                   ),
                   SizedBox(height: 6),
                   Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                    ), // Lề trái 16px cho danh sách
-                    child: RecipeListView(), // Thêm RecipeListView vào
+                    padding: const EdgeInsets.only(left: 16),
+                    child: Container(
+                      child: RecipeListView(), // Thêm RecipeListView vào
+                    ),
                   ),
                 ],
               ),
@@ -201,7 +209,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
           ],
         ),
       ),
-      // Thêm nút xem video ở góc dưới phải
+
+      // Nút xem video
       floatingActionButton: Container(
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: FloatingActionButton.extended(
@@ -217,11 +226,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
           backgroundColor: Color(0xff65A30D),
           icon: Icon(Icons.play_arrow, color: Color(0xffffffff)),
           label: Text(
-            "Xem video", // Thêm chữ "Xem video" ở đây
-            style: TextStyle(
-              fontSize: 14, // Cỡ chữ
-              color: Color(0xffffffff),
-            ),
+            "Xem video",
+            style: TextStyle(fontSize: 14, color: Color(0xffffffff)),
           ),
         ),
       ),
@@ -337,16 +343,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen>
                       style: TextStyle(fontSize: 14),
                     ),
                     SizedBox(height: 10),
-                    if (step["image_url"] != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.network(
-                          step["image_url"],
-                          width: 285,
-                          height: 170,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
                   ],
                 ),
               ),

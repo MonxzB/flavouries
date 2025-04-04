@@ -16,9 +16,9 @@ class _CommentScreenState extends State<CommentScreen> {
   // Fetch the comments for the post from Firestore
   Stream<QuerySnapshot> getComments() {
     return FirebaseFirestore.instance
-        .collection('post_comments')
+        .collection('recipe_comments')
         .where(
-          'post_id',
+          'recipe_id',
           isEqualTo: widget.postData['id'],
         ) // Assuming post_id field exists in comments
         .orderBy('created_at', descending: true)
@@ -28,8 +28,8 @@ class _CommentScreenState extends State<CommentScreen> {
   // Add a new comment to Firestore
   void _addComment(String text) async {
     if (text.isNotEmpty) {
-      await FirebaseFirestore.instance.collection('post_comments').add({
-        'post_id': widget.postData['id'], // The post this comment belongs to
+      await FirebaseFirestore.instance.collection('recipe_comments').add({
+        'recipe_id': widget.postData['id'],
         'user_id':
             1, // Add the user ID here, or use authentication to get the user
         'content': text,

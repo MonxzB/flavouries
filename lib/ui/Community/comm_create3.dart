@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertest/ui/Community/comm_home.dart';
 import 'package:fluttertest/ui/Community/comm_preview.dart';
 
 class RecipeStepsScreen extends StatefulWidget {
@@ -16,15 +16,13 @@ class RecipeStepsScreen extends StatefulWidget {
 
 class _RecipeStepsScreenState extends State<RecipeStepsScreen> {
   List<Map<String, dynamic>> steps = [
-    {"description": "", "image": null},
+    {"description": ""},
   ];
-
-  final ImagePicker _picker = ImagePicker();
 
   // 📌 Thêm bước mới
   void _addStep() {
     setState(() {
-      steps.add({"description": "", "image": null});
+      steps.add({"description": ""});
     });
   }
 
@@ -37,53 +35,20 @@ class _RecipeStepsScreenState extends State<RecipeStepsScreen> {
     });
   }
 
-  // 📌 Chọn ảnh từ thư viện
-  Future<void> _pickImage(int index) async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        steps[index]["image"] = File(pickedFile.path);
-      });
-    }
-  }
-
-  // 📌 Tải ảnh lên Firebase Storage
-  Future<String?> _uploadImageToFirebase(File imageFile) async {
-    try {
-      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      Reference storageRef = FirebaseStorage.instance.ref().child(
-        'steps/$fileName.jpg',
-      );
-      UploadTask uploadTask = storageRef.putFile(imageFile);
-      TaskSnapshot taskSnapshot = await uploadTask;
-      return await taskSnapshot.ref.getDownloadURL();
-    } catch (e) {
-      print("❌ Lỗi khi tải ảnh: $e");
-      return null;
-    }
-  }
-
   // 📌 Lưu danh sách bước làm vào Firestore
   Future<void> _saveRecipeSteps() async {
     try {
-      for (int i = 0; i < steps.length; i++) {
-        String? imageUrl;
-        if (steps[i]["image"] != null) {
-          imageUrl = await _uploadImageToFirebase(steps[i]["image"]);
-        }
+      // Lấy tài liệu `recipe` mà bạn đã tạo ở bước 1
+      DocumentReference recipeRef = FirebaseFirestore.instance
+          .collection("recipes")
+          .doc(widget.recipeId);
 
-        await FirebaseFirestore.instance
-            .collection("posts")
-            .doc(widget.recipeId)
-            .collection("steps")
-            .add({
-              "step_number": i + 1,
-              "description": steps[i]["description"],
-              "imageUrl": imageUrl ?? "",
-            });
-      }
+      // Lưu danh sách bước chế biến vào trường "steps" của tài liệu `recipe`
+      await recipeRef.update({
+        'steps': steps, // Các bước chế biến từ mảng `steps`
+      });
 
-      // Chuyển sang màn xem trước (PostPreviewScreen)
+      // Chuyển sang màn xem trước bài viết (PostPreviewScreen)
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -91,7 +56,7 @@ class _RecipeStepsScreenState extends State<RecipeStepsScreen> {
         ),
       );
     } catch (e) {
-      print("❌ Lỗi khi lưu bước làm: $e");
+      print("❌ Lỗi khi lưu bước chế biến: $e");
     }
   }
 
@@ -254,30 +219,6 @@ class _RecipeStepsScreenState extends State<RecipeStepsScreen> {
         SizedBox(height: 6),
 
         // 🔹 Nút chọn ảnh
-        Center(
-          child: InkWell(
-            onTap: () => _pickImage(index),
-            child: Container(
-              width: double.infinity,
-              height: 60,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child:
-                  steps[index]["image"] == null
-                      ? Icon(Icons.camera_alt, color: Colors.grey)
-                      : Image.file(
-                        steps[index]["image"],
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: 60,
-                      ),
-            ),
-          ),
-        ),
-
         SizedBox(height: 10),
       ],
     );

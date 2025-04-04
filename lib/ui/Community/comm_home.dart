@@ -4,6 +4,7 @@ import 'package:fluttertest/components/post_options_popup.dart';
 import 'package:fluttertest/components/share.dart';
 import 'package:fluttertest/ui/Community/comm_cmt.dart';
 import 'package:fluttertest/ui/Community/comm_create.dart';
+import 'package:fluttertest/ui/Community/post_detail.dart';
 
 class FlavouriesScreen extends StatefulWidget {
   @override
@@ -68,7 +69,7 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
             child: StreamBuilder<QuerySnapshot>(
               stream:
                   FirebaseFirestore.instance
-                      .collection('community_posts')
+                      .collection('recipes')
                       .orderBy('created_at', descending: true)
                       .snapshots(),
               builder: (context, snapshot) {
@@ -111,163 +112,188 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
         }
 
         var userData = userSnapshot.data!.data() as Map<String, dynamic>;
+
+        // Lấy thông tin người dùng
         String userName = userData['name'] ?? "User";
         String userAvatar =
             userData['avatar_url'] ??
-            "https://firebasestorage.googleapis.com/v0/b/flavouries-b202d.firebasestorage.app/o/posts%2F1741919637126.jpg?alt=media&token=c188ccd6-c1f7-4870-ba20-f6bac10c271b"; // Default avatar
+            "https://firebasestorage.googleapis.com/v0/b/flavouries-b202d.firebasestorage.app/o/posts%2F1741919637126.jpg?alt=media&token=c188ccd6-c1f7-4870-ba20-f6bac10c271b"; // Default avatar if no avatar is available
 
-        return Card(
-          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title and description (with user image)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    // User's Avatar Image
-                    CircleAvatar(
-                      radius: 20, // Adjust the size as needed
-                      backgroundImage: NetworkImage(
-                        userAvatar,
-                      ), // Display avatar
-                      backgroundColor: Colors.grey.shade300,
-                    ),
-                    SizedBox(width: 10), // Spacing between avatar and text
-                    // Title and Description in the same row
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              // Title
-                              Text(
-                                postData["title"] ?? "No Title",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+        return GestureDetector(
+          onTap: () {
+            // Chuyển sang màn chi tiết của bài viết khi nhấn vào card
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) =>
+                        PostDetailScreen(postId: post.id), // Truyền postId
+              ),
+            );
+          },
+          child: Card(
+            margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title and description (with user image)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      // User's Avatar Image
+                      CircleAvatar(
+                        radius: 20, // Adjust the size as needed
+                        backgroundImage: NetworkImage(
+                          userAvatar,
+                        ), // Display avatar
+                        backgroundColor: Colors.grey.shade300,
+                      ),
+                      SizedBox(width: 10), // Spacing between avatar and text
+                      // Title and Description in the same row
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // Title
+                                Text(
+                                  postData["title"] ?? "No Title",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  maxLines: 1,
+                                  overflow:
+                                      TextOverflow
+                                          .ellipsis, // Handles long titles
                                 ),
-                                maxLines: 1,
-                                overflow:
-                                    TextOverflow
-                                        .ellipsis, // Handles long titles
+                                // More icon button
+                                IconButton(
+                                  icon: Icon(Icons.more_horiz),
+                                  onPressed: () {
+                                    // Show the Post Options Popup when the three dots are clicked
+                                    PostOptionsPopup.show(context);
+                                  },
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 2),
+                            // Description
+                            Text(
+                              postData["description"] ?? "No Description",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
                               ),
-                              // More icon button
-                              IconButton(
-                                icon: Icon(Icons.more_horiz),
-                                onPressed: () {
-                                  // Show the Post Options Popup when the three dots are clicked
-                                  PostOptionsPopup.show(context);
-                                },
-                              ),
-                            ],
+                              maxLines: 1,
+                              overflow:
+                                  TextOverflow
+                                      .ellipsis, // Handles long descriptions
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Image
+                Center(
+                  child: Image.network(
+                    postData["image_url"] ?? '',
+                    width: 335,
+                    height: 300,
+                    fit: BoxFit.cover, // Giữ tỷ lệ ảnh mà không bị bóp méo
+                  ),
+                ),
+                SizedBox(height: 10),
+
+                // Fetch total comment count for this post
+                FutureBuilder<int>(
+                  future: FirebaseFirestore.instance
+                      .collection('post_comments')
+                      .where('postId', isEqualTo: post.id) // Filter by postId
+                      .get()
+                      .then(
+                        (querySnapshot) => querySnapshot.size,
+                      ), // Get total count
+                  builder: (context, commentSnapshot) {
+                    if (commentSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+
+                    if (commentSnapshot.hasError) {
+                      return Center(
+                        child: Text("Error: ${commentSnapshot.error}"),
+                      );
+                    }
+
+                    int commentCount = commentSnapshot.data ?? 0;
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 8.0,
+                      ),
+                      child: Row(
+                        children: [
+                          // Like Icon with count
+                          IconButton(
+                            icon: Icon(
+                              postData['isLiked'] == true
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color:
+                                  postData['isLiked'] == true
+                                      ? Colors.red
+                                      : Colors.black,
+                            ),
+                            onPressed:
+                                () => _toggleLike(post.id, postData['isLiked']),
                           ),
-
-                          SizedBox(height: 2),
-
-                          // Description
+                          SizedBox(width: 4),
+                          // Comment Icon with count
+                          IconButton(
+                            icon: Icon(Icons.comment_bank_outlined),
+                            onPressed: () {
+                              // Navigate to comment screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) => PostDetailScreen(
+                                        postId: post.id,
+                                      ), // Truyền post.id vào, thay vì postData
+                                ),
+                              );
+                            },
+                          ),
                           Text(
-                            postData["description"] ?? "No Description",
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
-                            maxLines: 1,
-                            overflow:
-                                TextOverflow
-                                    .ellipsis, // Handles long descriptions
+                            commentCount
+                                .toString(), // Display the comment count
+                            style: TextStyle(fontSize: 14, color: Colors.black),
+                          ),
+                          SizedBox(width: 4),
+                          // Share Icon with count
+                          IconButton(
+                            icon: Icon(Icons.share),
+                            onPressed: () {
+                              showSharePopup(context);
+                            },
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              ),
-
-              // Image
-              Center(
-                child: Image.network(
-                  postData["media_url"] ?? '',
-                  width: 335,
-                  height: 300,
-                  fit: BoxFit.cover, // Giữ tỷ lệ ảnh mà không bị bóp méo
-                ),
-              ),
-
-              SizedBox(height: 10),
-
-              // Like, Comment, and Share functionality with counts
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0,
-                  vertical: 8.0,
-                ),
-                child: Row(
-                  children: [
-                    // Like Icon with count
-                    IconButton(
-                      icon: Icon(
-                        postData['isLiked'] == true
-                            ? Icons.favorite
-                            : Icons
-                                .favorite_border, // Kiểm tra if isLiked là true
-                        color:
-                            postData['isLiked'] == true
-                                ? Colors.red
-                                : Colors
-                                    .black, // Màu sắc khi thích hay chưa thích
-                      ),
-                      onPressed:
-                          () => _toggleLike(post.id, postData['isLiked']),
-                    ),
-                    // Like count
-                    Text(
-                      postData['likes_count']?.toString() ?? '0',
-                      style: TextStyle(fontSize: 14, color: Colors.black),
-                    ),
-                    SizedBox(width: 4),
-                    // Comment Icon with count
-                    IconButton(
-                      icon: Icon(Icons.comment_bank_outlined),
-                      onPressed: () {
-                        // Navigate to comment screen
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => CommentScreen(
-                                  postData: postData,
-                                ), // Pass postData to comment screen
-                          ),
-                        );
-                      },
-                    ),
-                    // Comment count
-                    Text(
-                      postData['comments_count']?.toString() ?? '0',
-                      style: TextStyle(fontSize: 14, color: Colors.black),
-                    ),
-                    SizedBox(width: 4),
-
-                    // Share Icon with count
-                    IconButton(
-                      icon: Icon(Icons.share),
-                      onPressed: () {
-                        showSharePopup(context);
-                      },
-                    ),
-                    // Share count
-                    Text(
-                      postData['shares_count']?.toString() ?? '0',
-                      style: TextStyle(fontSize: 14, color: Colors.black),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -275,10 +301,9 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
   }
 
   // Toggle like functionality
-  void _toggleLike(String postId, bool? isLiked) async {
-    await FirebaseFirestore.instance
-        .collection('community_posts')
-        .doc(postId)
-        .update({'isLiked': !(isLiked ?? false)});
+  void _toggleLike(String recipeId, bool? isLiked) async {
+    await FirebaseFirestore.instance.collection('recipes').doc(recipeId).update(
+      {'isLiked': !(isLiked ?? false)},
+    );
   }
 }

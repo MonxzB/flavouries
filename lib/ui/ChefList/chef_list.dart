@@ -93,7 +93,7 @@ class _ChefListState extends State<ChefList> {
             height: 60,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.shade400, width: 1.5),
+              border: Border.all(color: Color(0xffffffff), width: 1.5),
             ),
             child: ClipOval(
               child: Image.network(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertest/ui/Community/comm_home.dart';
 
 class PostPreviewScreen extends StatefulWidget {
@@ -25,54 +26,54 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
   // 📌 Fetch data from Firestore
   Future<void> _fetchPostData() async {
     try {
-      // Get the main post data
-      DocumentSnapshot postSnapshot =
+      // Get the main recipe data
+      DocumentSnapshot doc =
           await FirebaseFirestore.instance
               .collection("recipes")
               .doc(widget.recipeId)
               .get();
 
-      if (!postSnapshot.exists) {
-        print("⚠ Không tìm thấy bài viết!");
-        return;
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+
+        // Fetch ingredients from the "ingredients" field
+        ingredients = List<Map<String, dynamic>>.from(
+          data['ingredients'] ?? [],
+        );
+
+        // Fetch steps from the "steps" field
+        steps = List<Map<String, dynamic>>.from(data['steps'] ?? []);
+
+        setState(() {
+          postData = data;
+        });
+        print("data: $postData ");
+      } else {
+        print("⚠ Không có dữ liệu bài viết!");
       }
-
-      setState(() {
-        postData = postSnapshot.data() as Map<String, dynamic>;
-      });
-
-      // Get ingredients data
-      QuerySnapshot ingredientSnapshot =
-          await FirebaseFirestore.instance
-              .collection("recipes")
-              .doc(widget.recipeId)
-              .collection("ingredients")
-              .get();
-
-      setState(() {
-        ingredients =
-            ingredientSnapshot.docs
-                .map((doc) => doc.data() as Map<String, dynamic>)
-                .toList();
-      });
-
-      // Get recipe steps data
-      QuerySnapshot stepsSnapshot =
-          await FirebaseFirestore.instance
-              .collection("recipes")
-              .doc(widget.recipeId)
-              .collection("steps")
-              .orderBy("step_number")
-              .get();
-
-      setState(() {
-        steps =
-            stepsSnapshot.docs
-                .map((doc) => doc.data() as Map<String, dynamic>)
-                .toList();
-      });
     } catch (e) {
       print("❌ Lỗi khi lấy dữ liệu bài viết: $e");
+    }
+  }
+
+  // 📌 Lưu bài viết với user_id
+  Future<void> _submitPost() async {
+    try {
+      // Lấy user_id từ Firebase Authentication
+      String userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+      // Thêm user_id vào dữ liệu bài viết
+      await FirebaseFirestore.instance
+          .collection('recipes')
+          .doc(widget.recipeId)
+          .update({
+            'user_id': userId, // Lưu user_id vào bài viết
+          });
+
+      // Hiển thị thông báo thành công
+      _showSuccessPopup(context);
+    } catch (e) {
+      print("❌ Lỗi khi lưu user_id vào bài viết: $e");
     }
   }
 
@@ -90,13 +91,13 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Post image
-                    postData?["imageUrl"] != null &&
-                            postData?["imageUrl"].isNotEmpty
+                    postData?["image_url"] != null &&
+                            postData?["image_url"].isNotEmpty
                         ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
-                            postData?["imageUrl"] ??
-                                'https://via.placeholder.com/150', // Fallback image
+                            postData?["image_url"] ??
+                                'https://via.placeholder.com/150',
                             width: double.infinity,
                             height: 200,
                             fit: BoxFit.cover,
@@ -108,7 +109,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
 
                     // Dish name
                     Text(
-                      postData?["dishName"] ?? "Không có tiêu đề",
+                      postData?["title"] ?? "Không có tiêu đề",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -130,14 +131,12 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                         ? Text("Không có nguyên liệu.")
                         : Column(
                           children:
-                              ingredients
-                                  .map(
-                                    (ingredient) => _buildIngredientItem(
-                                      ingredient["ingredient"] ?? "N/A",
-                                      ingredient["quantity"] ?? "N/A",
-                                    ),
-                                  )
-                                  .toList(),
+                              ingredients.map((ingredient) {
+                                return _buildIngredientItem(
+                                  ingredient["name"] ?? "N/A",
+                                  ingredient["quantity"] ?? "N/A",
+                                );
+                              }).toList(),
                         ),
 
                     SizedBox(height: 12),
@@ -155,15 +154,13 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                         ? Text("Không có bước chế biến.")
                         : Column(
                           children:
-                              steps
-                                  .map(
-                                    (step) => _buildStep(
-                                      step["step_number"] ?? 0,
-                                      step["description"] ?? "Không có mô tả",
-                                      step["imageUrl"] ?? "",
-                                    ),
-                                  )
-                                  .toList(),
+                              steps.map((step) {
+                                return _buildStep(
+                                  step["step_number"] ?? 0,
+                                  step["description"] ?? "Không có mô tả",
+                                  step["image_url"] ?? '',
+                                );
+                              }).toList(),
                         ),
 
                     SizedBox(height: 20),
@@ -171,7 +168,7 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                     // Submit Button
                     Center(
                       child: ElevatedButton(
-                        onPressed: () => _showSuccessPopup(context),
+                        onPressed: _submitPost,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF84CC16),
                           foregroundColor: Colors.white,
@@ -245,16 +242,14 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
             style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
           ),
           SizedBox(height: 6),
-          if (imageUrl.isNotEmpty)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
+          imageUrl.isNotEmpty
+              ? Image.network(
                 imageUrl,
                 width: double.infinity,
                 height: 150,
                 fit: BoxFit.cover,
-              ),
-            ),
+              )
+              : SizedBox(),
         ],
       ),
     );

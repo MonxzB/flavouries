@@ -46,6 +46,7 @@ class _RecipeListViewState extends State<RecipeListView> {
                   [];
 
               final userId = data['user_id'];
+              print("user_id: $userId");
               return FirebaseFirestore.instance
                   .collection('users')
                   .doc(userId.toString())
@@ -98,7 +99,7 @@ class _RecipeListViewState extends State<RecipeListView> {
 
         // Hiển thị dữ liệu
         return SizedBox(
-          height: 205,
+          height: 245,
           child: FutureBuilder(
             future: Future.wait(recipes),
             builder: (context, futureSnapshot) {

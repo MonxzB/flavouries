@@ -35,21 +35,19 @@ class _IngredientScreenState extends State<IngredientScreen> {
   // 📌 Lưu danh sách nguyên liệu vào Firestore
   Future<void> _saveIngredients() async {
     try {
-      // Lưu dữ liệu Step 1 vào Firestore
-      DocumentReference recipeRef = await FirebaseFirestore.instance
-          .collection("recipes")
-          .add(widget.postData);
+      // Lưu dữ liệu của Step 1 vào Firestore (chưa có ingredients)
+      DocumentReference
+      recipeRef = await FirebaseFirestore.instance.collection("recipes").add({
+        'title': widget.postData['title'] ?? '',
+        'description': widget.postData['description'] ?? '',
+        'image_url': widget.postData['image_url'] ?? '',
+        'video_url': widget.postData['video_url'] ?? '',
+        'user_id': widget.postData['user_id'] ?? '',
+        'created_at': FieldValue.serverTimestamp(),
+        'ingredients': ingredients, // Lưu nguyên liệu vào trường "ingredients"
+      });
 
-      // Lưu danh sách nguyên liệu vào Subcollection "ingredients"
-      for (var ingredient in ingredients) {
-        if (ingredient["name"]!.isNotEmpty &&
-            ingredient["quantity"]!.isNotEmpty &&
-            ingredient["unit"]!.isNotEmpty) {
-          await recipeRef.collection("ingredients").add(ingredient);
-        }
-      }
-
-      // Chuyển sang Step 3 (RecipeStepsScreen)
+      // Sau khi lưu xong nguyên liệu, chuyển sang màn RecipeStepsScreen
       Navigator.push(
         context,
         MaterialPageRoute(

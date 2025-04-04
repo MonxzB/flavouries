@@ -59,11 +59,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   // 📌 Chuyển sang màn IngredientScreen
   void _nextStep() async {
     String content = _postController.text.trim();
-    String dishName = _dishNameController.text.trim();
+    String title = _dishNameController.text.trim();
     String description = _descriptionController.text.trim();
 
     // Kiểm tra nếu thiếu dữ liệu
-    if (content.isEmpty || dishName.isEmpty || description.isEmpty) {
+    if (content.isEmpty || title.isEmpty || description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Vui lòng nhập đầy đủ thông tin!")),
       );
@@ -79,9 +79,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     // Tạo dữ liệu để chuyển sang Step 2
     Map<String, dynamic> postData = {
       'content': content,
-      'dishName': dishName,
+      'title': title,
       'description': description,
-      'imageUrl': imageUrl ?? "",
+      'image_url': imageUrl ?? "",
     };
 
     // Chuyển sang màn IngredientScreen (Step 2)

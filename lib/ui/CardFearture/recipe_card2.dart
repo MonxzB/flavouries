@@ -10,8 +10,8 @@ class RecipeCard2 extends StatelessWidget {
   final List<Map<String, dynamic>> steps;
   final String kcal;
   final String time;
-  final String chefName;
-  final String chefImage;
+  final String name;
+  final String avatar_url;
   final bool isLiked;
   final int likes; // ✅ Đổi từ String => int
 
@@ -25,8 +25,8 @@ class RecipeCard2 extends StatelessWidget {
     required this.steps,
     required this.kcal,
     required this.time,
-    required this.chefName,
-    required this.chefImage,
+    required this.name,
+    required this.avatar_url,
     required this.likes,
     required this.isLiked,
   }) : super(key: key);
