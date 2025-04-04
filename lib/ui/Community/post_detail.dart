@@ -144,7 +144,7 @@ class PostDetailScreen extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder:
-                                  (context) => CommentScreen(postId: postId),
+                                  (context) => CommentScreen2(postId: postId),
                             ),
                           );
                         },
@@ -197,10 +197,10 @@ class PostDetailScreen extends StatelessWidget {
   }
 }
 
-class CommentScreen extends StatelessWidget {
+class CommentScreen2 extends StatelessWidget {
   final String postId;
 
-  CommentScreen({required this.postId});
+  CommentScreen2({required this.postId});
 
   @override
   Widget build(BuildContext context) {

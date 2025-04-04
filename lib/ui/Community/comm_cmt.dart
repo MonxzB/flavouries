@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CommentScreen extends StatefulWidget {
   final Map<String, dynamic> postData;
@@ -15,12 +16,10 @@ class _CommentScreenState extends State<CommentScreen> {
 
   // Fetch the comments for the post from Firestore
   Stream<QuerySnapshot> getComments() {
+    print("Post Data in CommentScreen: ${widget.postData}");
     return FirebaseFirestore.instance
         .collection('recipe_comments')
-        .where(
-          'recipe_id',
-          isEqualTo: widget.postData['id'],
-        ) // Assuming post_id field exists in comments
+        .where('recipe_id', isEqualTo: widget.postData['recipe_id'].toString())
         .orderBy('created_at', descending: true)
         .snapshots();
   }
@@ -28,20 +27,31 @@ class _CommentScreenState extends State<CommentScreen> {
   // Add a new comment to Firestore
   void _addComment(String text) async {
     if (text.isNotEmpty) {
+      String? userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) return; // Xử lý nếu người dùng chưa đăng nhập
+
       await FirebaseFirestore.instance.collection('recipe_comments').add({
-        'recipe_id': widget.postData['id'],
-        'user_id':
-            1, // Add the user ID here, or use authentication to get the user
+        'recipe_id':
+            widget.postData['recipe_id'], // Sử dụng recipe_id từ postData
+        'user_id': userId,
         'content': text,
-        'image_url': '', // Optionally, you can add an image
-        'created_at': Timestamp.now(), // Current timestamp
+        'created_at': Timestamp.now(), // Thời gian hiện tại
       });
-      _commentController.clear();
+
+      _commentController.clear(); // Xóa nội dung sau khi thêm bình luận
     }
+  }
+
+  // Convert timestamp to readable format
+  String _formatTimestamp(Timestamp timestamp) {
+    var dateTime = timestamp.toDate();
+    return "${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute}";
   }
 
   @override
   Widget build(BuildContext context) {
+    print("Post Data in CommentScreen: ${widget.postData}");
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -82,6 +92,7 @@ class _CommentScreenState extends State<CommentScreen> {
                   itemBuilder: (context, index) {
                     var commentData =
                         comments[index].data() as Map<String, dynamic>;
+
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Column(
@@ -96,7 +107,7 @@ class _CommentScreenState extends State<CommentScreen> {
                               ),
                               SizedBox(width: 8),
                               Text(
-                                commentData["name"] ?? "Anonymous",
+                                commentData["user_id"] ?? "Anonymous",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
@@ -104,7 +115,7 @@ class _CommentScreenState extends State<CommentScreen> {
                               ),
                               SizedBox(width: 8),
                               Text(
-                                commentData["time"] ?? "Now",
+                                _formatTimestamp(commentData["created_at"]),
                                 style: TextStyle(
                                   color: Colors.grey,
                                   fontSize: 12,

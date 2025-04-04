@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertest/components/post_options_popup.dart';
 import 'package:fluttertest/components/share.dart';
-import 'package:fluttertest/ui/Community/comm_cmt.dart';
 import 'package:fluttertest/ui/Community/comm_create.dart';
 import 'package:fluttertest/ui/Community/post_detail.dart';
+import 'package:fluttertest/ui/Community/comm_cmt.dart';
 
 class FlavouriesScreen extends StatefulWidget {
   @override
@@ -76,6 +76,7 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
                 }
+
                 if (snapshot.hasError) {
                   return Center(child: Text("Lỗi khi tải bài viết"));
                 }
@@ -99,12 +100,16 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
   // Widget to display each post
   Widget _buildPostItem(DocumentSnapshot post) {
     Map<String, dynamic> postData = post.data() as Map<String, dynamic>;
+    String recipeId =
+        postData['recipe_id'] ?? 'Unknown Recipe ID'; // Default nếu không có
+
+    print("Recipe abc: $recipeId"); // In ra Recipe ID để kiểm tra
 
     return FutureBuilder<DocumentSnapshot>(
       future:
           FirebaseFirestore.instance
               .collection('users')
-              .doc(postData["user_id"]) // Get the user document by user_id
+              .doc(postData["user_id"])
               .get(),
       builder: (context, userSnapshot) {
         if (!userSnapshot.hasData) {
@@ -112,12 +117,10 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
         }
 
         var userData = userSnapshot.data!.data() as Map<String, dynamic>;
-
-        // Lấy thông tin người dùng
         String userName = userData['name'] ?? "User";
         String userAvatar =
             userData['avatar_url'] ??
-            "https://firebasestorage.googleapis.com/v0/b/flavouries-b202d.firebasestorage.app/o/posts%2F1741919637126.jpg?alt=media&token=c188ccd6-c1f7-4870-ba20-f6bac10c271b"; // Default avatar if no avatar is available
+            "https://firebasestorage.googleapis.com/v0/b/flavouries-b202d.firebasestorage.app/o/posts%2F1741919637126.jpg?alt=media&token=c188ccd6-c1f7-4870-ba20-f6bac10c271b"; // Default avatar
 
         return GestureDetector(
           onTap: () {
@@ -125,9 +128,7 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder:
-                    (context) =>
-                        PostDetailScreen(postId: post.id), // Truyền postId
+                builder: (context) => PostDetailScreen(postId: post.id),
               ),
             );
           },
@@ -139,21 +140,16 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title and description (with user image)
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     children: [
-                      // User's Avatar Image
                       CircleAvatar(
-                        radius: 20, // Adjust the size as needed
-                        backgroundImage: NetworkImage(
-                          userAvatar,
-                        ), // Display avatar
+                        radius: 20,
+                        backgroundImage: NetworkImage(userAvatar),
                         backgroundColor: Colors.grey.shade300,
                       ),
-                      SizedBox(width: 10), // Spacing between avatar and text
-                      // Title and Description in the same row
+                      SizedBox(width: 10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,7 +157,6 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                // Title
                                 Text(
                                   postData["title"] ?? "No Title",
                                   style: TextStyle(
@@ -169,11 +164,8 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                                     fontSize: 16,
                                   ),
                                   maxLines: 1,
-                                  overflow:
-                                      TextOverflow
-                                          .ellipsis, // Handles long titles
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                // More icon button
                                 IconButton(
                                   icon: Icon(Icons.more_horiz),
                                   onPressed: () {
@@ -184,7 +176,6 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                               ],
                             ),
                             SizedBox(height: 2),
-                            // Description
                             Text(
                               postData["description"] ?? "No Description",
                               style: TextStyle(
@@ -192,9 +183,7 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                                 color: Colors.grey,
                               ),
                               maxLines: 1,
-                              overflow:
-                                  TextOverflow
-                                      .ellipsis, // Handles long descriptions
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -202,26 +191,21 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                     ],
                   ),
                 ),
-                // Image
                 Center(
                   child: Image.network(
                     postData["image_url"] ?? '',
                     width: 335,
                     height: 300,
-                    fit: BoxFit.cover, // Giữ tỷ lệ ảnh mà không bị bóp méo
+                    fit: BoxFit.cover,
                   ),
                 ),
                 SizedBox(height: 10),
-
-                // Fetch total comment count for this post
                 FutureBuilder<int>(
                   future: FirebaseFirestore.instance
                       .collection('post_comments')
-                      .where('postId', isEqualTo: post.id) // Filter by postId
+                      .where('postId', isEqualTo: post.id)
                       .get()
-                      .then(
-                        (querySnapshot) => querySnapshot.size,
-                      ), // Get total count
+                      .then((querySnapshot) => querySnapshot.size),
                   builder: (context, commentSnapshot) {
                     if (commentSnapshot.connectionState ==
                         ConnectionState.waiting) {
@@ -243,7 +227,6 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                       ),
                       child: Row(
                         children: [
-                          // Like Icon with count
                           IconButton(
                             icon: Icon(
                               postData['isLiked'] == true
@@ -258,29 +241,25 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                                 () => _toggleLike(post.id, postData['isLiked']),
                           ),
                           SizedBox(width: 4),
-                          // Comment Icon with count
                           IconButton(
                             icon: Icon(Icons.comment_bank_outlined),
                             onPressed: () {
-                              // Navigate to comment screen
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder:
-                                      (context) => PostDetailScreen(
-                                        postId: post.id,
-                                      ), // Truyền post.id vào, thay vì postData
+                                      (context) => CommentScreen(
+                                        postData: postData,
+                                      ), // Truyền postData chứa recipe_id
                                 ),
                               );
                             },
                           ),
                           Text(
-                            commentCount
-                                .toString(), // Display the comment count
+                            commentCount.toString(),
                             style: TextStyle(fontSize: 14, color: Colors.black),
                           ),
                           SizedBox(width: 4),
-                          // Share Icon with count
                           IconButton(
                             icon: Icon(Icons.share),
                             onPressed: () {

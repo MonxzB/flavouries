@@ -278,14 +278,18 @@ class _ProfileScreenState extends State<ProfileScreen>
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            children:
-                [
-                  "Kẹo Caramel",
-                  "Bánh su kem",
-                  "Panna cotta",
-                ].map((tag) => _buildTag(tag)).toList(),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children:
+                  [
+                    "Kẹo Caramel",
+                    "Bánh su kem",
+                    "Panna cotta",
+                  ].map((tag) => _buildTag(tag)).toList(),
+            ),
           ),
           SizedBox(height: 10),
         ],
@@ -295,15 +299,13 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   // Tạo các tag cho sở thích
   Widget _buildTag(String text) {
-    return Center(
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(text, style: TextStyle(fontSize: 12, color: Colors.black)),
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(20),
       ),
+      child: Text(text, style: TextStyle(fontSize: 12, color: Colors.green)),
     );
   }
 }
