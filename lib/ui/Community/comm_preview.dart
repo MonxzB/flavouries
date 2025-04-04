@@ -279,13 +279,15 @@ class _PostPreviewScreenState extends State<PostPreviewScreen> {
                 SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pushAndRemoveUntil(
+                    Navigator.pop(context); // Đóng Popup
+                    // Sử dụng pushNamed thay vì pushNamedAndRemoveUntil
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => FlavouriesScreen(),
+                        builder:
+                            (context) =>
+                                FlavouriesScreen(), // Quay lại FlavouriesScreen
                       ),
-                      (route) => false,
                     );
                   },
                   child: Text("Về trang chủ"),

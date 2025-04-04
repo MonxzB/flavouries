@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertest/Screens/home_screen.dart';
 import 'package:fluttertest/components/post_options_popup.dart';
 import 'package:fluttertest/components/share.dart';
 import 'package:fluttertest/ui/Community/comm_create.dart';
 import 'package:fluttertest/ui/Community/post_detail.dart';
 import 'package:fluttertest/ui/Community/comm_cmt.dart';
+import 'package:fluttertest/components/navbar.dart';
+import 'package:fluttertest/ui/Profile/profile_user_view.dart';
+import 'package:fluttertest/ui/Search/search_home.dart'; // Đảm bảo import CustomNavBar
 
 class FlavouriesScreen extends StatefulWidget {
   @override
@@ -12,6 +16,38 @@ class FlavouriesScreen extends StatefulWidget {
 }
 
 class _FlavouriesScreenState extends State<FlavouriesScreen> {
+  String? userAvatar; // Nullable biến
+
+  @override
+  void initState() {
+    super.initState();
+    // Lấy thông tin người dùng từ Firestore khi màn hình được tạo
+    _getUserData();
+  }
+
+  // Lấy thông tin người dùng từ Firestore
+  Future<void> _getUserData() async {
+    try {
+      String userId =
+          "user_id"; // Bạn có thể thay bằng FirebaseAuth.instance.currentUser?.uid
+      DocumentSnapshot userSnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userId)
+              .get();
+
+      if (userSnapshot.exists) {
+        setState(() {
+          userAvatar =
+              userSnapshot['avatar_url'] ??
+              "https://firebasestorage.googleapis.com/v0/b/flavouries-b202d.firebasestorage.app/o/posts%2F1741919637126.jpg?alt=media&token=c188ccd6-c1f7-4870-ba20-f6bac10c271b"; // Default avatar nếu không có
+        });
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,10 +60,18 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
-                CircleAvatar(
-                  backgroundColor: Colors.grey.shade300,
-                  child: Icon(Icons.person, color: Colors.white),
-                ),
+                userAvatar != null
+                    ? CircleAvatar(
+                      radius: 20,
+                      backgroundImage:
+                          userAvatar != null ? NetworkImage(userAvatar!) : null,
+                      backgroundColor: Colors.grey.shade300,
+                    )
+                    : CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.grey.shade300,
+                      child: Icon(Icons.person, color: Colors.white),
+                    ),
                 SizedBox(width: 10),
                 Expanded(
                   child: GestureDetector(
@@ -103,8 +147,6 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
     String recipeId =
         postData['recipe_id'] ?? 'Unknown Recipe ID'; // Default nếu không có
 
-    print("Recipe abc: $recipeId"); // In ra Recipe ID để kiểm tra
-
     return FutureBuilder<DocumentSnapshot>(
       future:
           FirebaseFirestore.instance
@@ -120,7 +162,7 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
         String userName = userData['name'] ?? "User";
         String userAvatar =
             userData['avatar_url'] ??
-            "https://firebasestorage.googleapis.com/v0/b/flavouries-b202d.firebasestorage.app/o/posts%2F1741919637126.jpg?alt=media&token=c188ccd6-c1f7-4870-ba20-f6bac10c271b"; // Default avatar
+            "https://firebasestorage.googleapis.com/v0/b/flavouries-b202d.firebasestorage.app/o/posts%2F1741919637126.jpg?alt=media&token=c188ccd6-c1f7-4870-ba20-f6bac10c271b"; // Default avatar if no avatar
 
         return GestureDetector(
           onTap: () {
@@ -135,8 +177,9 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
           child: Card(
             margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(4),
             ),
+            color: Colors.white, // Màu nền là trắng
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -169,20 +212,18 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                                 IconButton(
                                   icon: Icon(Icons.more_horiz),
                                   onPressed: () {
-                                    // Show the Post Options Popup when the three dots are clicked
                                     PostOptionsPopup.show(context);
                                   },
                                 ),
                               ],
                             ),
-                            SizedBox(height: 2),
                             Text(
                               postData["description"] ?? "No Description",
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey,
                               ),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
@@ -194,7 +235,6 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                 Center(
                   child: Image.network(
                     postData["image_url"] ?? '',
-                    width: 335,
                     height: 300,
                     fit: BoxFit.cover,
                   ),
@@ -210,12 +250,6 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                     if (commentSnapshot.connectionState ==
                         ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
-                    }
-
-                    if (commentSnapshot.hasError) {
-                      return Center(
-                        child: Text("Error: ${commentSnapshot.error}"),
-                      );
                     }
 
                     int commentCount = commentSnapshot.data ?? 0;
@@ -248,16 +282,15 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder:
-                                      (context) => CommentScreen(
-                                        postData: postData,
-                                      ), // Truyền postData chứa recipe_id
+                                      (context) =>
+                                          CommentScreen(postData: postData),
                                 ),
                               );
                             },
                           ),
                           Text(
                             commentCount.toString(),
-                            style: TextStyle(fontSize: 14, color: Colors.black),
+                            style: TextStyle(fontSize: 14),
                           ),
                           SizedBox(width: 4),
                           IconButton(
@@ -279,7 +312,6 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
     );
   }
 
-  // Toggle like functionality
   void _toggleLike(String recipeId, bool? isLiked) async {
     await FirebaseFirestore.instance.collection('recipes').doc(recipeId).update(
       {'isLiked': !(isLiked ?? false)},

@@ -18,11 +18,14 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool isLoadingFavorites = true;
 
   late String userId;
+  late User? user;
+  String? userAvatar; // Khai báo biến userAvatar
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    user = FirebaseAuth.instance.currentUser;
 
     // Lấy userId từ FirebaseAuth (nếu người dùng đã đăng nhập)
     userId = FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -30,6 +33,38 @@ class _ProfileScreenState extends State<ProfileScreen>
     // Gọi hàm lấy dữ liệu
     _fetchRecipes();
     _fetchFavoriteRecipes();
+    _getUserData();
+  }
+
+  Future<void> _getUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        // Truy vấn Firestore để lấy dữ liệu người dùng
+        DocumentSnapshot userSnapshot =
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid) // Sử dụng UID của người dùng
+                .get();
+
+        if (userSnapshot.exists) {
+          setState(() {
+            // Lấy URL ảnh đại diện từ Firestore
+            userAvatar =
+                userSnapshot['avatar_url'] ??
+                "https://i.pravatar.cc/150?u=${user.uid}"; // Dùng ảnh mặc định nếu không có ảnh đại diện
+            print("link ảnh: $userAvatar");
+          });
+        } else {
+          print("Không tìm thấy dữ liệu người dùng trong Firestore");
+        }
+      } catch (e) {
+        print("Lỗi khi lấy dữ liệu người dùng từ Firestore: $e");
+      }
+    } else {
+      print("Người dùng chưa đăng nhập");
+    }
   }
 
   // Lấy tất cả công thức của người dùng
@@ -239,17 +274,24 @@ class _ProfileScreenState extends State<ProfileScreen>
       child: Column(
         children: [
           CircleAvatar(
-            radius: 45,
-            backgroundImage: AssetImage("assets/images/avatar.png"),
+            radius: 35,
+            backgroundImage:
+                userAvatar != null
+                    ? NetworkImage(
+                      userAvatar!,
+                    ) // Lấy ảnh từ Firestore (avatar_url)
+                    : null, // Nếu không có ảnh, thì không hiển thị ảnh
+            backgroundColor: Colors.grey.shade300,
           ),
+
           SizedBox(height: 10),
           Text(
-            "Nguyễn Văn X",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            user?.displayName ?? "Chưa có tên", // Hiển thị tên người dùng
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 5),
           Text(
-            "0 Follow • 12345 Follower • 1027 Lượt thích",
+            "5 Follow • 12345 Follower • 1027 Lượt thích",
             style: TextStyle(color: Colors.grey, fontSize: 14),
           ),
           SizedBox(height: 10),
@@ -275,7 +317,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           SizedBox(height: 10),
           Text(
             "Tôi ghét ăn tối bằng thức ăn đóng hộp",
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+            style: TextStyle(fontSize: 14, color: Color(0xff21330F)),
           ),
           SizedBox(height: 10),
           Padding(
@@ -302,10 +344,13 @@ class _ProfileScreenState extends State<ProfileScreen>
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.green),
+        border: Border.all(color: Color(0xff585951)),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(text, style: TextStyle(fontSize: 12, color: Colors.green)),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 13, color: Color(0xff585951)),
+      ),
     );
   }
 }

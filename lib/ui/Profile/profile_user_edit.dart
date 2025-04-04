@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EditProfileScreen extends StatefulWidget {
   @override
@@ -6,18 +8,77 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController _nameController = TextEditingController(
-    text: "Nguyễn Văn X",
-  );
-  final TextEditingController _phoneController = TextEditingController(
-    text: "0123456789",
-  );
-  final TextEditingController _emailController = TextEditingController(
-    text: "nguyenvanx8386@gmail.com",
-  );
-  final TextEditingController _passwordController = TextEditingController(
-    text: "************",
-  );
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  String? userAvatar; // URL ảnh đại diện
+
+  // Lấy dữ liệu người dùng từ Firestore khi màn hình được hiển thị
+  @override
+  void initState() {
+    super.initState();
+    _getUserData();
+  }
+
+  // Lấy dữ liệu người dùng từ Firestore
+  Future<void> _getUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        DocumentSnapshot userSnapshot =
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .get();
+
+        if (userSnapshot.exists) {
+          var userData = userSnapshot.data() as Map<String, dynamic>;
+
+          setState(() {
+            _nameController.text = userData['name'] ?? ''; // Lấy tên người dùng
+            _phoneController.text =
+                userData['phone'] ?? ''; // Lấy số điện thoại
+            _emailController.text = userData['email'] ?? ''; // Lấy email
+            userAvatar = userData['avatar_url']; // Lấy ảnh đại diện
+          });
+        }
+      } catch (e) {
+        print("Lỗi khi lấy dữ liệu người dùng: $e");
+      }
+    }
+  }
+
+  // Cập nhật thông tin người dùng vào Firestore
+  Future<void> _updateUserProfile() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({
+              'name': _nameController.text,
+              'phone': _phoneController.text,
+              'email': _emailController.text,
+              // 'avatar_url': userAvatar, // Nếu bạn muốn cập nhật ảnh đại diện
+            });
+
+        // Hiển thị thông báo khi cập nhật thành công
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Thông tin đã được cập nhật!")));
+
+        // Quay lại màn hình trước
+        Navigator.pop(context);
+      } catch (e) {
+        print("Lỗi khi cập nhật thông tin: $e");
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,11 +123,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               // 📌 Nút hoàn tất chỉnh sửa
               ElevatedButton(
-                onPressed: () {
-                  // TODO: Xử lý cập nhật thông tin
-                  print("Hoàn tất chỉnh sửa");
-                  Navigator.pop(context); // Quay lại trang trước
-                },
+                onPressed: _updateUserProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF84CC16), // Màu xanh lá
                   shape: RoundedRectangleBorder(
@@ -94,15 +151,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       children: [
         CircleAvatar(
           radius: 45,
-          backgroundImage: AssetImage("assets/images/avatar.png"),
+          backgroundImage:
+              userAvatar != null
+                  ? NetworkImage(userAvatar!) // Lấy ảnh từ Firestore nếu có
+                  : AssetImage("assets/images/avatar.png") as ImageProvider,
         ),
         SizedBox(height: 10),
         Text(
-          "Nguyễn Văn X",
+          _nameController.text,
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         Text(
-          "nguyenvanx8386@gmail.com",
+          _emailController.text,
           style: TextStyle(fontSize: 14, color: Colors.grey),
         ),
       ],
