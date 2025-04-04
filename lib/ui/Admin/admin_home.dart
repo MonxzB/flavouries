@@ -6,6 +6,7 @@ import 'package:fluttertest/ui/Admin/AdminFavourite/admin_favorite.dart';
 import 'package:fluttertest/ui/Admin/AdminRecipe/admin_recipe.dart';
 import 'package:fluttertest/ui/Admin/AdminUser/admin_user.dart';
 import 'package:fluttertest/ui/Community/comm_create.dart';
+import 'package:fluttertest/Screens/Login/login_screen.dart';
 
 class AdminHome extends StatefulWidget {
   @override
@@ -73,6 +74,23 @@ class _AdminHomeState extends State<AdminHome> {
       }
     } catch (e) {
       print("Error fetching user data: $e");
+    }
+  }
+
+  // Log out the user
+  Future<void> _logout() async {
+    try {
+      await FirebaseAuth.instance.signOut(); // Sign out from Firebase
+
+      // Navigate to the login screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginScreen(), // Navigate to LoginScreen
+        ),
+      );
+    } catch (e) {
+      print("Error during logout: $e");
     }
   }
 
@@ -178,12 +196,12 @@ class _AdminHomeState extends State<AdminHome> {
               },
             ),
 
-            SizedBox(height: 60),
+            SizedBox(height: 30),
 
             // Buttons
             ElevatedButton(
               onPressed: () {
-                // Điều hướng sang CreatePostScreen khi nhấn nút
+                // Navigate to CreatePostScreen when the button is pressed
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => CreatePostScreen()),
@@ -192,7 +210,7 @@ class _AdminHomeState extends State<AdminHome> {
               child: Text(
                 'Thêm mới công thức',
                 style: TextStyle(
-                  color: Colors.white, // Đặt màu chữ là màu trắng
+                  color: Colors.white, // Set the text color to white
                 ),
               ),
               style: ElevatedButton.styleFrom(
@@ -204,6 +222,29 @@ class _AdminHomeState extends State<AdminHome> {
                 padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
               ),
             ),
+
+            SizedBox(height: 20),
+
+            // Logout Button
+            ElevatedButton(
+              onPressed: _logout, // Call the logout function
+              child: Text(
+                'Đăng xuất',
+                style: TextStyle(
+                  color: Colors.white, // Set the text color to white
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // Make logout button red
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  side: BorderSide(color: Colors.red),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+              ),
+            ),
+
+            SizedBox(height: 5),
           ],
         ),
       ),
@@ -229,9 +270,9 @@ class _AdminHomeState extends State<AdminHome> {
         padding: const EdgeInsets.only(right: 16.0),
         child: Row(
           children: [
-            SizedBox(width: 10),
+            SizedBox(width: 6),
             Text(
-              'Chào $userName', // Hiển thị tên người dùng
+              'Chào $userName', // Display user's name
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
@@ -241,7 +282,7 @@ class _AdminHomeState extends State<AdminHome> {
         ),
       ),
       centerTitle: true,
-      actions: [Icon(Icons.notifications, color: Colors.black)],
+      // actions: [Icon(Icons.notifications, color: Colors.black)],
     );
   }
 }

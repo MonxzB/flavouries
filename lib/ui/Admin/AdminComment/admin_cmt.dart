@@ -8,11 +8,12 @@ class AdminCommentsScreen extends StatefulWidget {
 
 class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
   List<Map<String, dynamic>> comments = [];
+  bool isLoading = true; // Thêm biến để kiểm tra trạng thái tải dữ liệu
 
   @override
   void initState() {
     super.initState();
-    _fetchComments();
+    _fetchComments(); // Gọi hàm lấy dữ liệu bình luận
   }
 
   // Lấy danh sách bình luận từ Firebase
@@ -25,12 +26,12 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
 
       List<Map<String, dynamic>> commentList = [];
       for (var doc in snapshot.docs) {
-        var recipeId = doc['recipe_id']; // Lấy recipe_id từ bình luận
-        var userId = doc['user_id']; // Lấy user_id từ bình luận
+        String content = doc['content'] ?? 'No comment';
+        String recipeId = doc['recipe_id'] ?? 'No recipe ID';
+        String userId = doc['user_id'] ?? 'No user ID';
 
-        // Kiểm tra và chuyển đổi recipe_id và user_id sang String nếu cần
-        if (recipeId is int) recipeId = recipeId.toString();
-        if (userId is int) userId = userId.toString();
+        // In ra bình luận để kiểm tra
+        print("Bình luận: $content, Recipe ID: $recipeId, User ID: $userId");
 
         // Lấy dữ liệu công thức từ bảng recipes
         var recipeSnapshot =
@@ -48,8 +49,8 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
 
         if (recipeSnapshot.exists && userSnapshot.exists) {
           commentList.add({
-            'comment': doc['comment'] ?? 'No comment', // Nội dung bình luận
-            'recipeId': recipeId,
+            'content': content, // Nội dung bình luận
+            'recipeId': recipeId, // ID công thức
             'recipeTitle':
                 recipeSnapshot['title'] ?? 'No Title', // Tiêu đề công thức
             'userName':
@@ -63,9 +64,13 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
 
       setState(() {
         comments = commentList;
+        isLoading = false; // Đánh dấu đã tải xong dữ liệu
       });
     } catch (e) {
       print("Error fetching comments: $e");
+      setState(() {
+        isLoading = false; // Đánh dấu khi có lỗi
+      });
     }
   }
 
@@ -88,10 +93,12 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child:
-            comments.isEmpty
+            isLoading
+                ? Center(child: CircularProgressIndicator()) // Hiển thị loading
+                : comments.isEmpty
                 ? Center(
-                  child: CircularProgressIndicator(),
-                ) // Loading nếu chưa lấy được dữ liệu
+                  child: Text("Không có bình luận."),
+                ) // Thông báo nếu không có bình luận
                 : ListView.builder(
                   itemCount: comments.length,
                   itemBuilder: (context, index) {
@@ -110,7 +117,7 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(comment['comment']), // Nội dung bình luận
+                            Text(comment['content']), // Nội dung bình luận
                             SizedBox(height: 5),
                             Text(
                               'Công thức: ${comment['recipeTitle']}',
