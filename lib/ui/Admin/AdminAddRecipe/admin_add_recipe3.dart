@@ -1,62 +1,63 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fluttertest/ui/Admin/AdminAddRecipe/admin_add_recipe3.dart';
-import 'package:fluttertest/ui/Community/comm_create3.dart';
+import 'package:fluttertest/ui/Admin/AdminAddRecipe/admin_add_recipe_review.dart';
+import 'package:fluttertest/ui/Community/comm_home.dart';
+import 'package:fluttertest/ui/Community/comm_preview.dart';
 
-class AdminAddRecipe2 extends StatefulWidget {
-  final Map<String, dynamic> postData; // Dữ liệu từ Step 1
+class AdminAddRecipe3 extends StatefulWidget {
+  final String recipeId; // Nhận postId từ Step 2
 
-  AdminAddRecipe2({required this.postData});
+  AdminAddRecipe3({required this.recipeId});
 
   @override
-  _AdminAddRecipe2State createState() => _AdminAddRecipe2State();
+  _AdminAddRecipe3State createState() => _AdminAddRecipe3State();
 }
 
-class _AdminAddRecipe2State extends State<AdminAddRecipe2> {
-  List<Map<String, String>> ingredients = [
-    {"name": "", "quantity": "", "unit": ""},
+class _AdminAddRecipe3State extends State<AdminAddRecipe3> {
+  List<Map<String, dynamic>> steps = [
+    {"description": ""},
   ];
 
-  // 📌 Thêm nguyên liệu mới
-  void _addIngredient() {
+  // 📌 Thêm bước mới
+  void _addStep() {
     setState(() {
-      ingredients.add({"name": "", "quantity": "", "unit": ""});
+      steps.add({"description": ""});
     });
   }
 
-  // 📌 Xóa nguyên liệu (không xóa nếu chỉ còn 1)
-  void _removeIngredient(int index) {
+  // 📌 Xóa bước
+  void _removeStep(int index) {
     setState(() {
-      if (ingredients.length > 1) {
-        ingredients.removeAt(index);
+      if (steps.length > 1) {
+        steps.removeAt(index);
       }
     });
   }
 
-  // 📌 Lưu danh sách nguyên liệu vào Firestore
-  Future<void> _saveIngredients() async {
+  // 📌 Lưu danh sách bước làm vào Firestore
+  Future<void> _saveRecipeSteps() async {
     try {
-      // Lưu dữ liệu của Step 1 vào Firestore (chưa có ingredients)
-      DocumentReference
-      recipeRef = await FirebaseFirestore.instance.collection("recipes").add({
-        'title': widget.postData['title'] ?? '',
-        'description': widget.postData['description'] ?? '',
-        'image_url': widget.postData['image_url'] ?? '',
-        'video_url': widget.postData['video_url'] ?? '',
-        'user_id': widget.postData['user_id'] ?? '',
-        'created_at': FieldValue.serverTimestamp(),
-        'ingredients': ingredients, // Lưu nguyên liệu vào trường "ingredients"
+      // Lấy tài liệu `recipe` mà bạn đã tạo ở bước 1
+      DocumentReference recipeRef = FirebaseFirestore.instance
+          .collection("recipes")
+          .doc(widget.recipeId);
+
+      // Lưu danh sách bước chế biến vào trường "steps" của tài liệu `recipe`
+      await recipeRef.update({
+        'steps': steps, // Các bước chế biến từ mảng `steps`
       });
 
-      // Sau khi lưu xong nguyên liệu, chuyển sang màn AdminAddRecipe3
+      // Chuyển sang màn xem trước bài viết (AdminAddRecipeReview)
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AdminAddRecipe3(recipeId: recipeRef.id),
+          builder: (context) => AdminAddRecipeReview(recipeId: widget.recipeId),
         ),
       );
     } catch (e) {
-      print("❌ Lỗi khi lưu nguyên liệu: $e");
+      print("❌ Lỗi khi lưu bước chế biến: $e");
     }
   }
 
@@ -72,19 +73,19 @@ class _AdminAddRecipe2State extends State<AdminAddRecipe2> {
           children: [
             Expanded(
               child: ListView.builder(
-                itemCount: ingredients.length,
+                itemCount: steps.length,
                 itemBuilder: (context, index) {
-                  return _buildIngredientItem(index);
+                  return _buildStepItem(index);
                 },
               ),
             ),
 
             SizedBox(height: 10),
 
-            // 🔹 Nút "Thêm nguyên liệu"
+            // 🔹 Nút "Thêm bước"
             Center(
               child: TextButton(
-                onPressed: _addIngredient,
+                onPressed: _addStep,
                 style: TextButton.styleFrom(
                   side: BorderSide(color: Color(0xFF65A30D)),
                   shape: RoundedRectangleBorder(
@@ -93,7 +94,7 @@ class _AdminAddRecipe2State extends State<AdminAddRecipe2> {
                   padding: EdgeInsets.symmetric(vertical: 12, horizontal: 40),
                 ),
                 child: Text(
-                  "Thêm nguyên liệu",
+                  "Thêm bước",
                   style: TextStyle(color: Color(0xFF65A30D), fontSize: 16),
                 ),
               ),
@@ -101,7 +102,7 @@ class _AdminAddRecipe2State extends State<AdminAddRecipe2> {
 
             SizedBox(height: 20),
 
-            // 🔹 Nút "Hủy" & "Tiếp tục"
+            // 🔹 Nút "Hủy" & "Hoàn tất"
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -119,9 +120,9 @@ class _AdminAddRecipe2State extends State<AdminAddRecipe2> {
                   child: Text("Hủy"),
                 ),
 
-                // ✅ **Tiếp tục**
+                // ✅ **Hoàn tất**
                 ElevatedButton(
-                  onPressed: _saveIngredients,
+                  onPressed: _saveRecipeSteps,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFABEB68),
                     foregroundColor: Colors.white,
@@ -130,7 +131,7 @@ class _AdminAddRecipe2State extends State<AdminAddRecipe2> {
                     ),
                     padding: EdgeInsets.symmetric(horizontal: 80, vertical: 14),
                   ),
-                  child: Text("Tiếp tục"),
+                  child: Text("Hoàn tất"),
                 ),
               ],
             ),
@@ -152,7 +153,7 @@ class _AdminAddRecipe2State extends State<AdminAddRecipe2> {
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
-        "Nguyên liệu",
+        "Công thức",
         style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
@@ -161,7 +162,7 @@ class _AdminAddRecipe2State extends State<AdminAddRecipe2> {
           padding: const EdgeInsets.only(right: 16),
           child: Center(
             child: Text(
-              "2/3",
+              "3/3",
               style: TextStyle(fontSize: 16, color: Colors.black),
             ),
           ),
@@ -170,8 +171,8 @@ class _AdminAddRecipe2State extends State<AdminAddRecipe2> {
     );
   }
 
-  // 📌 **Widget nhập nguyên liệu**
-  Widget _buildIngredientItem(int index) {
+  // 📌 **Widget nhập bước làm**
+  Widget _buildStepItem(int index) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -192,76 +193,33 @@ class _AdminAddRecipe2State extends State<AdminAddRecipe2> {
 
             Expanded(
               child: TextField(
+                maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: "Nhập nguyên liệu",
+                  hintText: "Nhập bước chế biến",
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 12,
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(color: Color(0xFF65A30D)),
                   ),
                 ),
-                onChanged: (value) => ingredients[index]["name"] = value,
+                onChanged: (value) => steps[index]["description"] = value,
               ),
             ),
 
             if (index > 0)
               IconButton(
                 icon: Icon(Icons.remove_circle_outline, color: Colors.red),
-                onPressed: () => _removeIngredient(index),
+                onPressed: () => _removeStep(index),
               ),
           ],
         ),
 
         SizedBox(height: 6),
 
-        Row(
-          children: [
-            SizedBox(width: 50),
-
-            Expanded(
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: "Định lượng",
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 12,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Color(0xFF65A30D)),
-                  ),
-                ),
-                onChanged: (value) => ingredients[index]["quantity"] = value,
-              ),
-            ),
-
-            SizedBox(width: 10),
-
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide(color: Color(0xFF65A30D)),
-                  ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                ),
-                items:
-                    ["Gram", "Kg", "ml", "L"]
-                        .map(
-                          (unit) =>
-                              DropdownMenuItem(value: unit, child: Text(unit)),
-                        )
-                        .toList(),
-                onChanged: (value) => ingredients[index]["unit"] = value!,
-              ),
-            ),
-          ],
-        ),
-
+        // 🔹 Nút chọn ảnh
         SizedBox(height: 10),
       ],
     );

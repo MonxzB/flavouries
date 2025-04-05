@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertest/ui/Admin/AdminAddRecipe/admin_add_recipe2.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -84,11 +85,11 @@ class _AdminAddRecipe1State extends State<AdminAddRecipe1> {
       'image_url': imageUrl ?? "",
     };
 
-    // Chuyển sang màn IngredientScreen (Step 2)
+    // Chuyển sang màn AdminAddRecipe2 (Step 2)
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => IngredientScreen(postData: postData),
+        builder: (context) => AdminAddRecipe2(postData: postData),
       ),
     );
   }
