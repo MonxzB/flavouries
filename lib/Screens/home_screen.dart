@@ -36,11 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 _buildSectionTitle("Đề xuất"),
                 _buildRecommendedRecipes(),
-                _buildSectionTitle("Đầu bếp nổi tiếng"),
-                SizedBox(
-                  // Wrap chef list in SizedBox with fixed height
-                  child: _buildFamousChefs(),
-                ),
+                // _buildSectionTitle("Đầu bếp nổi tiếng"),
+                // SizedBox(
+                //   // Wrap chef list in SizedBox with fixed height
+                //   child: _buildFamousChefs(),
+                // ),
                 _buildSectionTitle("Top công thức"),
                 _buildTopRecipes(),
                 const SizedBox(height: 20), // Bottom padding
