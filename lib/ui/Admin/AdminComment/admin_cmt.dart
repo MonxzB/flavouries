@@ -8,7 +8,7 @@ class AdminCommentsScreen extends StatefulWidget {
 
 class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
   List<Map<String, dynamic>> comments = [];
-  bool isLoading = true; // Thêm biến để kiểm tra trạng thái tải dữ liệu
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -20,9 +20,7 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
   Future<void> _fetchComments() async {
     try {
       var snapshot =
-          await FirebaseFirestore.instance
-              .collection('recipe_comments')
-              .get(); // Lấy tất cả bình luận từ collection 'recipe_comments'
+          await FirebaseFirestore.instance.collection('recipe_comments').get();
 
       List<Map<String, dynamic>> commentList = [];
       for (var doc in snapshot.docs) {
@@ -30,17 +28,12 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
         String recipeId = doc['recipe_id'] ?? 'No recipe ID';
         String userId = doc['user_id'] ?? 'No user ID';
 
-        // In ra bình luận để kiểm tra
-        print("Bình luận: $content, Recipe ID: $recipeId, User ID: $userId");
-
-        // Lấy dữ liệu công thức từ bảng recipes
         var recipeSnapshot =
             await FirebaseFirestore.instance
                 .collection('recipes')
                 .doc(recipeId)
                 .get();
 
-        // Lấy dữ liệu người dùng từ bảng users
         var userSnapshot =
             await FirebaseFirestore.instance
                 .collection('users')
@@ -49,28 +42,71 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
 
         if (recipeSnapshot.exists && userSnapshot.exists) {
           commentList.add({
-            'content': content, // Nội dung bình luận
-            'recipeId': recipeId, // ID công thức
-            'recipeTitle':
-                recipeSnapshot['title'] ?? 'No Title', // Tiêu đề công thức
-            'userName':
-                userSnapshot['name'] ?? 'Unknown User', // Tên người dùng
+            'content': content,
+            'recipeId': recipeId,
+            'recipeTitle': recipeSnapshot['title'] ?? 'No Title',
+            'userName': userSnapshot['name'] ?? 'Unknown User',
             'userAvatar':
-                userSnapshot['avatar_url'] ??
-                'https://via.placeholder.com/150', // Avatar người dùng
+                userSnapshot['avatar_url'] ?? 'https://via.placeholder.com/150',
+            'commentId': doc.id, // Save the commentId for deletion
           });
         }
       }
 
       setState(() {
         comments = commentList;
-        isLoading = false; // Đánh dấu đã tải xong dữ liệu
+        isLoading = false;
       });
     } catch (e) {
       print("Error fetching comments: $e");
       setState(() {
-        isLoading = false; // Đánh dấu khi có lỗi
+        isLoading = false;
       });
+    }
+  }
+
+  // Delete comment with a confirmation dialog
+  Future<void> _deleteComment(String commentId) async {
+    // Show confirmation dialog before deleting
+    bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Xóa bình luận"),
+          content: Text("Bạn có chắc chắn muốn xóa bình luận này?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // Dismiss dialog with 'No'
+              },
+              child: Text("Hủy"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true); // Dismiss dialog with 'Yes'
+              },
+              child: Text("Xóa"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('recipe_comments')
+            .doc(commentId) // Delete comment by its ID
+            .delete();
+
+        setState(() {
+          comments.removeWhere((comment) => comment['commentId'] == commentId);
+        });
+
+        print("Đã xóa bình luận với ID: $commentId");
+      } catch (e) {
+        print("Lỗi khi xóa bình luận: $e");
+      }
     }
   }
 
@@ -94,11 +130,9 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
         padding: const EdgeInsets.all(16.0),
         child:
             isLoading
-                ? Center(child: CircularProgressIndicator()) // Hiển thị loading
+                ? Center(child: CircularProgressIndicator())
                 : comments.isEmpty
-                ? Center(
-                  child: Text("Không có bình luận."),
-                ) // Thông báo nếu không có bình luận
+                ? Center(child: Text("Không có bình luận."))
                 : ListView.builder(
                   itemCount: comments.length,
                   itemBuilder: (context, index) {
@@ -111,13 +145,13 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
                       child: ListTile(
                         leading: CircleAvatar(
                           backgroundImage: NetworkImage(comment['userAvatar']),
-                          radius: 20, // Kích thước avatar
+                          radius: 20,
                         ),
                         title: Text(comment['userName']),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(comment['content']), // Nội dung bình luận
+                            Text(comment['content']),
                             SizedBox(height: 5),
                             Text(
                               'Công thức: ${comment['recipeTitle']}',
@@ -127,6 +161,12 @@ class _AdminCommentsScreenState extends State<AdminCommentsScreen> {
                               ),
                             ),
                           ],
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            _deleteComment(comment['commentId']);
+                          },
                         ),
                       ),
                     );

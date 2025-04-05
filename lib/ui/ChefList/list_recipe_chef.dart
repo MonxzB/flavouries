@@ -3,9 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertest/ui/CardMostSearch/recipe_card.dart';
 
 class RecipeListViewChef extends StatelessWidget {
-  final String userId; // Lọc theo chefId
+  final String user_id; // Lọc theo chefId
 
-  const RecipeListViewChef({Key? key, required this.userId}) : super(key: key);
+  const RecipeListViewChef({Key? key, required this.user_id}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class RecipeListViewChef extends StatelessWidget {
       stream:
           FirebaseFirestore.instance
               .collection('recipes')
-              .where('user_id', isEqualTo: userId) // Lọc theo userID
+              .where('user_id', isEqualTo: user_id) // Lọc theo userID
               .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -113,7 +113,7 @@ class RecipeListViewChef extends StatelessWidget {
                       time: recipe["time"] ?? '0 mins',
                       avatarUrl: recipe["chefImage"] ?? '',
                       name: recipe["name"] ?? 'Unknown User',
-                      userId: recipe["id"] ?? 'Unknown User', // Dùng id
+                      user_id: recipe["user_id"] ?? 'Unknown User', // Dùng id
                       isLiked: recipe["isLiked"] ?? false,
                       likes: recipe["likes"] ?? '0',
                       recipeId: recipe["id"] ?? '',

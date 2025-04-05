@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertest/Screens/Login/login_screen.dart';
 import 'package:fluttertest/Screens/Signup/signup_screen.dart';
+import 'package:fluttertest/ui/Admin/admin_home.dart';
 import 'package:fluttertest/ui/Community/comm_home.dart';
 import 'package:fluttertest/ui/splash/splash.dart';
 import 'package:fluttertest/firebase_options.dart';
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(), // ✅ Đăng nhập
         '/home': (context) => MainScreen(), // ✅ Màn hình chính
         '/flavouriesScreen': (context) => FlavouriesScreen(),
+        '/adminHome': (context) => AdminHome(),
       },
     );
   }

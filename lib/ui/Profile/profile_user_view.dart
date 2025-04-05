@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertest/ui/CardMostSearch/recipe_card.dart';
 import 'package:fluttertest/ui/Profile/profile_edit.dart';
-import 'package:fluttertest/ui/Profile/recipe_card_profile.dart'; // Đảm bảo rằng bạn đã có widget RecipeCard
+import 'package:fluttertest/ui/Profile/recipe_card_profile.dart'; // Đảm bảo rằng bạn đã có widget RecipeCardProf
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -18,7 +18,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   bool isLoadingRecipes = true;
   bool isLoadingFavorites = true;
 
-  late String userId;
+  late String user_id;
   late User? user;
   String? userAvatar; // Khai báo biến userAvatar
 
@@ -28,8 +28,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     _tabController = TabController(length: 2, vsync: this);
     user = FirebaseAuth.instance.currentUser;
 
-    // Lấy userId từ FirebaseAuth (nếu người dùng đã đăng nhập)
-    userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    // Lấy user_id từ FirebaseAuth (nếu người dùng đã đăng nhập)
+    user_id = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     // Gọi hàm lấy dữ liệu
     _fetchRecipes();
@@ -74,38 +74,55 @@ class _ProfileScreenState extends State<ProfileScreen>
       final snapshot =
           await FirebaseFirestore.instance
               .collection('recipes')
-              .where('user_id', isEqualTo: userId)
+              .where(
+                'user_id',
+                isEqualTo: user_id,
+              ) // Truy vấn công thức của người dùng hiện tại
               .get();
 
-      final fetched =
-          snapshot.docs.map((doc) {
-            final data = doc.data();
+      final fetched = await Future.wait(
+        snapshot.docs.map((doc) async {
+          final data = doc.data();
+          final userId = data["user_id"];
 
-            return {
-              "imageUrl": data["image_url"] ?? '',
-              "title": data["title"] ?? '',
-              "description": data["description"] ?? '',
-              "ingredients":
-                  (data["ingredients"] as List?)
-                      ?.map((e) => Map<String, String>.from(e))
-                      .toList() ??
-                  [],
-              "steps":
-                  (data["steps"] as List?)
-                      ?.map((e) => Map<String, dynamic>.from(e))
-                      .toList() ??
-                  [],
-              "kcal": data["calories"]?.toString() ?? "0 Kcal",
-              "time": "${(data["steps"] as List?)?.length ?? 0} Min",
-              "chefName": data["name"] ?? 'Unknown Chef', // Lấy tên người dùng
-              "chefImage":
-                  data["avatar_url"] ??
-                  'https://i.pravatar.cc/150?u=${userId}', // Lấy hình ảnh người dùng
-              "likes": "0",
-              "isLiked": false,
-              "id": doc.id,
-            };
-          }).toList();
+          // Truy vấn Firestore để lấy dữ liệu người dùng (chefName và chefImage)
+          DocumentSnapshot userSnapshot =
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(userId) // Sử dụng user_id để lấy thông tin người dùng
+                  .get();
+
+          String chefName =
+              userSnapshot["name"] ?? 'Unknown Chef'; // Lấy tên người dùng
+          String chefImage =
+              userSnapshot["avatar_url"] ??
+              'https://i.pravatar.cc/150?u=$userId'; // Lấy avatar người dùng
+          print("chefName: $chefName");
+          print("chefName: $chefImage");
+          return {
+            "imageUrl": data["image_url"] ?? '', // Ảnh công thức
+            "title": data["title"] ?? '', // Tiêu đề công thức
+            "description": data["description"] ?? '', // Mô tả công thức
+            "ingredients":
+                (data["ingredients"] as List?)
+                    ?.map((e) => Map<String, String>.from(e))
+                    .toList() ??
+                [],
+            "steps":
+                (data["steps"] as List?)
+                    ?.map((e) => Map<String, dynamic>.from(e))
+                    .toList() ??
+                [],
+            "kcal": data["calories"]?.toString() ?? "0 Kcal",
+            "time": "${(data["steps"] as List?)?.length ?? 0} Min",
+            "chefName": chefName, // Tên đầu bếp từ collection users
+            "chefImage": chefImage, // Hình ảnh đầu bếp từ collection users
+            "likes": "0",
+            "isLiked": false,
+            "id": doc.id,
+          };
+        }).toList(),
+      );
 
       setState(() {
         recipes = fetched;
@@ -123,7 +140,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       final favSnapshot =
           await FirebaseFirestore.instance
               .collection('favourites')
-              .where('user_id', isEqualTo: userId)
+              .where('user_id', isEqualTo: user_id)
               .get();
 
       final recipeIds =
@@ -166,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               "chefName": data["name"] ?? 'Unknown Chef', // Lấy tên người dùng
               "chefImage":
                   data["avatar_url"] ??
-                  'https://i.pravatar.cc/150?u=${userId}', // Lấy hình ảnh người dùng
+                  'https://i.pravatar.cc/150?u=${user_id}', // Lấy hình ảnh người dùng
               "likes": "0",
               "isLiked": true,
               "id": doc.id,
@@ -232,7 +249,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   // Hiển thị các công thức trong Grid
-  // Hiển thị các công thức trong Grid
   Widget _buildRecipeGrid(List<Map<String, dynamic>> list, bool isLoading) {
     if (isLoading) {
       return Center(child: CircularProgressIndicator());
@@ -252,18 +268,19 @@ class _ProfileScreenState extends State<ProfileScreen>
       itemBuilder: (context, index) {
         final recipe = list[index];
         return Center(
-          // Đảm bảo item được căn giữa trong mỗi ô của Grid
           child: RecipeCardProfile(
             imageUrl: recipe["imageUrl"] ?? '',
             title: recipe["title"] ?? '',
             description: recipe["description"] ?? '',
-            ingredients: recipe["ingredients"],
-            steps: recipe["steps"],
+            ingredients: recipe["ingredients"] ?? [],
+            steps: recipe["steps"] ?? [],
             kcal: recipe["kcal"] ?? '0',
             time: recipe["time"] ?? '0 mins',
-            avatarUrl: recipe["userImage"] ?? '', // Dùng userImage
-            name: recipe["name"] ?? 'Unknown User', // Dùng name
-            userId: recipe["userId"] ?? 'Unknown User', // Dùng id
+            avatarUrl:
+                recipe["chefImage"] ??
+                'https://via.placeholder.com/150', // Kiểm tra avatar của chef
+            name: recipe["chefName"] ?? 'Unknown User', // Kiểm tra tên của chef
+            user_id: recipe["user_id"] ?? 'Unknown User',
             isLiked: recipe["isLiked"] ?? false,
             likes: recipe["likes"] ?? '0',
             recipeId: recipe["id"] ?? '',

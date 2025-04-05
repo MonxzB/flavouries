@@ -1,45 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertest/ui/ChefList/list_recipe_chef.dart'; // Import nếu cần
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertest/ui/ChefList/list_recipe_chef.dart';
 
-class ChefProfileScreen extends StatelessWidget {
+class ChefProfileScreen2 extends StatefulWidget {
   final String name;
   final String imageUrl;
-  final String user_id;
 
-  const ChefProfileScreen({
+  const ChefProfileScreen2({
     Key? key,
     required this.name,
     required this.imageUrl,
-    required this.user_id,
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    print("user_id: $user_id");
+  _ChefProfileScreenState createState() => _ChefProfileScreenState();
+}
 
+class _ChefProfileScreenState extends State<ChefProfileScreen2> {
+  late String userId; // Dùng để lưu user_id sau khi tìm thấy
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId(); // Gọi hàm để truy vấn user_id dựa trên name
+  }
+
+  Future<void> _loadUserId() async {
+    try {
+      // Truy vấn Firestore tìm kiếm userId dựa trên name
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('name', isEqualTo: widget.name) // Lọc theo trường 'name'
+              .get();
+
+      // Kiểm tra nếu có document phù hợp
+      if (snapshot.docs.isNotEmpty) {
+        setState(() {
+          userId = snapshot.docs.first.id; // Lấy user_id từ document
+        });
+        print('Found user_id: $userId');
+      } else {
+        print('No user found with the name: ${widget.name}');
+      }
+    } catch (e) {
+      print('Error fetching user ID: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Chi tiết người dùng'), // Cập nhật tên màn hình
+        title: Text('Chi tiết người dùng'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar + Info
+            // Hiển thị thông tin người dùng
             Column(
               children: [
-                // Ảnh
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      width: 150, // Đặt chiều rộng ảnh
-                      height: 150, // Đặt chiều cao ảnh
+                      width: 150,
+                      height: 150,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
@@ -48,14 +80,15 @@ class ChefProfileScreen extends StatelessWidget {
                         ),
                       ),
                       child: ClipOval(
-                        child: Image.network(imageUrl, fit: BoxFit.cover),
+                        child: Image.network(
+                          widget.imageUrl,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ],
                 ),
-
-                const SizedBox(height: 16), // Khoảng cách giữa ảnh và text
-                // Thông tin người dùng (Tên, Danh hiệu, Nút)
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -63,7 +96,7 @@ class ChefProfileScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          name,
+                          widget.name,
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -72,58 +105,30 @@ class ChefProfileScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Master Chef', // Giữ lại danh hiệu, nếu cần thay đổi có thể chỉnh sửa
+                          'Master Chef',
                           style: TextStyle(
                             fontSize: 16,
                             color: Color(0xff21330F),
                           ),
                         ),
                         const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed:
-                              () {}, // Để trống hoặc thêm chức năng theo nhu cầu
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 32,
-                              vertical: 8,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              side: BorderSide(
-                                color: Color(0xFF446E26),
-                                width: 1,
-                              ),
-                            ),
-                          ),
-                          child: Text(
-                            'Theo dõi',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xff446E26),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ],
                 ),
               ],
             ),
-
             const SizedBox(height: 32),
-            Center(
-              child: Text(
-                'Tôi ghét ăn tối bằng thức ăn đóng hộp',
-                style: TextStyle(fontSize: 16, color: Color(0xff21330F)),
-              ),
-            ),
-            const SizedBox(height: 16),
+            // Hiển thị thông tin người dùng từ Firestore (Sau khi load xong)
+            if (userId.isNotEmpty)
+              Text('User ID: $userId', style: TextStyle(fontSize: 16)),
+            const SizedBox(height: 32),
             Text(
               'Sở trường nấu ăn:',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
+            // Các món ăn yêu thích (Chips)
             Center(
               child: Wrap(
                 spacing: 8,
@@ -168,16 +173,15 @@ class ChefProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 32),
             Text(
               'Công thức yêu thích:',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-
             // 👇 Thêm phần này để hiển thị công thức
-            RecipeListViewChef(user_id: user_id), // Truyền đúng user_id
+            // Truyền userId vào danh sách công thức
+            RecipeListViewChef(user_id: userId),
           ],
         ),
       ),

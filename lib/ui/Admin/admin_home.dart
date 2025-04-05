@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertest/ui/Admin/AdminComment/admin_cmt.dart';
 import 'package:fluttertest/ui/Admin/AdminFavourite/admin_favorite.dart';
-import 'package:fluttertest/ui/Admin/AdminRecipe/admin_recipe.dart';
+import 'package:fluttertest/ui/Admin/AdminRecipe/AdminSreen.dart';
 import 'package:fluttertest/ui/Admin/AdminUser/admin_user.dart';
 import 'package:fluttertest/ui/Community/comm_create.dart';
 import 'package:fluttertest/Screens/Login/login_screen.dart';

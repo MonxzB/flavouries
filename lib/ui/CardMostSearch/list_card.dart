@@ -132,7 +132,7 @@ class _RecipeListViewState extends State<RecipeListView> {
                       time: recipe["time"] ?? '0 mins',
                       avatarUrl: recipe["userImage"] ?? '', // Dùng userImage
                       name: recipe["name"] ?? 'Unknown User', // Dùng name
-                      userId: recipe["userId"] ?? 'Unknown User', // Dùng id
+                      user_id: recipe["user_id"] ?? 'Unknown User', // Dùng id
                       isLiked: recipe["isLiked"] ?? false,
                       likes: recipe["likes"] ?? '0',
                       recipeId: recipe["id"] ?? '',

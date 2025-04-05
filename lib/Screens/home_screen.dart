@@ -107,9 +107,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFamousChefs() {
-    return SizedBox(child: ChefList());
-  }
+  // Widget _buildFamousChefs() {
+  //   return SizedBox(child: ChefList());
+  // }
 
   Widget _buildTopRecipes() {
     return SizedBox(child: ListTopRecipe());

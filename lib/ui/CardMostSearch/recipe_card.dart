@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fluttertest/ui/CardMostSearch/detail_chef1.dart';
 import 'package:fluttertest/ui/ChefList/detail_chef.dart';
-import 'package:fluttertest/ui/Detail/detail_recipe.dart'; // Đảm bảo bạn đã import màn hình ChefProfileScreen
+import 'package:fluttertest/ui/Detail/detail_recipe.dart'; // Import Firestore
 
 class RecipeCard extends StatelessWidget {
   final String recipeId;
@@ -11,9 +13,9 @@ class RecipeCard extends StatelessWidget {
   final List<Map<String, dynamic>> steps;
   final String kcal;
   final String time;
-  final String avatarUrl; // Thêm avatarUrl
-  final String name; // Thêm name
-  final String userId; // Thêm userId
+  final String avatarUrl;
+  final String name;
+  final String user_id; // user_id từ Firestore
   final bool isLiked;
   final String likes;
 
@@ -27,9 +29,9 @@ class RecipeCard extends StatelessWidget {
     required this.steps,
     required this.kcal,
     required this.time,
-    required this.avatarUrl, // Thêm avatarUrl
-    required this.name, // Thêm name
-    required this.userId, // Thêm userId
+    required this.avatarUrl,
+    required this.name,
+    required this.user_id, // Truyền user_id
     required this.isLiked,
     required this.likes,
   }) : super(key: key);
@@ -38,6 +40,9 @@ class RecipeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        // In ra user_id để kiểm tra
+        print('Received user_id: $user_id'); // Kiểm tra user_id đã nhận
+
         // Điều hướng đến RecipeDetailScreen khi nhấn vào công thức
         Navigator.push(
           context,
@@ -67,46 +72,18 @@ class RecipeCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
-                  child: Image.network(
-                    imageUrl,
-                    width: 200,
-                    height: 130,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          isLiked ? Icons.favorite : Icons.favorite_border,
-                          color: Colors.white,
-                          size: 14,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          "$likes k",
-                          style: TextStyle(color: Colors.white, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            // Hình ảnh công thức
+            ClipRRect(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              child: Image.network(
+                imageUrl,
+                width: 200,
+                height: 130,
+                fit: BoxFit.cover,
+              ),
             ),
             SizedBox(height: 6),
             Padding(
@@ -185,15 +162,18 @@ class RecipeCard extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () {
+                      print(
+                        'user_id: $user_id',
+                      ); // In ra user_id trước khi điều hướng
+
                       // Điều hướng đến ChefProfileScreen khi nhấn vào avatar
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder:
-                              (context) => ChefProfileScreen(
-                                userId: userId,
-                                name: name,
-                                imageUrl: avatarUrl,
+                              (context) => ChefProfileScreen1(
+                                name: name, // Truyền name
+                                imageUrl: avatarUrl, // Truyền avatarUrl
                               ),
                         ),
                       );

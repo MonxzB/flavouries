@@ -10,9 +10,11 @@ class PostDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
-        title: Text("Chi tiết bài viết", style: TextStyle(color: Colors.white)),
-        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(
+          "Chi tiết bài viết",
+          style: TextStyle(color: Color(0xff21330F)),
+        ),
+        iconTheme: IconThemeData(color: Color(0xff21330F)),
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future:
@@ -56,12 +58,14 @@ class PostDetailScreen extends StatelessWidget {
                   SizedBox(height: 16),
 
                   // Tên món ăn
-                  Text(
-                    postData['title'] ?? 'Không có tiêu đề',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                  Center(
+                    child: Text(
+                      postData['title'] ?? 'Không có tiêu đề',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xff111907),
+                      ),
                     ),
                   ),
 
@@ -83,15 +87,51 @@ class PostDetailScreen extends StatelessWidget {
                     itemCount: (postData['ingredients'] as List).length,
                     itemBuilder: (context, index) {
                       var ingredient = postData['ingredients'][index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(vertical: 4),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 5,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(ingredient['name']),
-                              Text(ingredient['quantity']),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  ingredient["image"] ??
+                                      "assets/images/nguyenlieu.png",
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  ingredient["name"] ?? "Không rõ",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF166534),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                ingredient["quantity"] ?? "--",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black54,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -117,11 +157,32 @@ class PostDetailScreen extends StatelessWidget {
                     itemCount: (postData['steps'] as List).length,
                     itemBuilder: (context, index) {
                       var step = postData['steps'][index];
-                      return Row(
+                      return Column(
                         children: [
-                          Icon(Icons.check_circle, color: Colors.green),
-                          SizedBox(width: 8),
-                          Expanded(child: Text(step['description'])),
+                          Row(
+                            children: [
+                              // Show step number
+                              Container(
+                                width: 30,
+                                height: 30,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.green,
+                                ),
+                                child: Text(
+                                  '${index + 1}', // Show step number starting from 1
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(child: Text(step['description'])),
+                            ],
+                          ),
+                          SizedBox(height: 10), // Adds 10px gap between steps
                         ],
                       );
                     },
@@ -133,11 +194,14 @@ class PostDetailScreen extends StatelessWidget {
                   Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.favorite_border, color: Colors.green),
+                        icon: Icon(
+                          Icons.favorite_border,
+                          color: Color(0xff42423D),
+                        ),
                         onPressed: () {},
                       ),
                       IconButton(
-                        icon: Icon(Icons.comment, color: Colors.green),
+                        icon: Icon(Icons.comment, color: Color(0xff42423D)),
                         onPressed: () {
                           // Điều hướng đến màn hình bình luận
                           Navigator.push(

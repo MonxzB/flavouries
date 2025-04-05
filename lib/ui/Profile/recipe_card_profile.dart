@@ -3,6 +3,7 @@ import 'package:fluttertest/ui/ChefList/detail_chef.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import FirebaseFirestore
 
 import 'package:fluttertest/ui/Detail/detail_recipe.dart';
+import 'package:fluttertest/ui/Profile/detail_chef2.dart';
 import 'package:fluttertest/ui/Profile/edit_recipe_card.dart'; // Đảm bảo bạn đã import màn hình ChefProfileScreen
 
 class RecipeCardProfile extends StatelessWidget {
@@ -16,7 +17,7 @@ class RecipeCardProfile extends StatelessWidget {
   final String time;
   final String avatarUrl; // Thêm avatarUrl
   final String name; // Thêm name
-  final String userId; // Thêm userId
+  final String user_id; // Thêm user_id
   final bool isLiked;
   final String likes;
 
@@ -32,7 +33,7 @@ class RecipeCardProfile extends StatelessWidget {
     required this.time,
     required this.avatarUrl, // Thêm avatarUrl
     required this.name, // Thêm name
-    required this.userId, // Thêm userId
+    required this.user_id, // Thêm user_id
     required this.isLiked,
     required this.likes,
   }) : super(key: key);
@@ -191,15 +192,17 @@ class RecipeCardProfile extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      // Điều hướng đến ChefProfileScreen khi nhấn vào avatar
+                      // Điều hướng đến ChefProfileScreen2 khi nhấn vào avatar
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder:
-                              (context) => ChefProfileScreen(
-                                userId: userId,
+                              (context) => ChefProfileScreen2(
                                 name: name,
-                                imageUrl: avatarUrl,
+                                imageUrl:
+                                    avatarUrl.isEmpty
+                                        ? 'https://via.placeholder.com/150' // Nếu avatarUrl rỗng, dùng ảnh mặc định
+                                        : avatarUrl, // Truyền avatarUrl
                               ),
                         ),
                       );
@@ -207,8 +210,9 @@ class RecipeCardProfile extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 12,
                       backgroundImage: NetworkImage(
-                        avatarUrl ??
-                            'https://via.placeholder.com/150', // Avatar mặc định
+                        avatarUrl.isNotEmpty
+                            ? avatarUrl
+                            : 'https://via.placeholder.com/150', // Avatar mặc định khi avatarUrl rỗng
                       ),
                     ),
                   ),
@@ -230,7 +234,6 @@ class RecipeCardProfile extends StatelessWidget {
     );
   }
 
-  // Hiển thị hộp thoại với các tùy chọn "Sửa" và "Xóa"
   // Hiển thị hộp thoại với các tùy chọn "Sửa" và "Xóa"
   void _showActionDialog(BuildContext context) {
     showDialog(

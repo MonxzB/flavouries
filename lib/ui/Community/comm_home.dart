@@ -52,7 +52,18 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: Text("Flavouries Community")),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Image.asset(
+          'assets/images/logo.png', // Path to your logo image
+          height: 40, // Adjust height as necessary
+          width: 160, // Adjust width as necessary
+          fit: BoxFit.contain, // Ensures the image is properly scaled
+        ),
+        centerTitle: true,
+      ),
+
       body: Column(
         children: [
           // Post entry section
@@ -276,7 +287,7 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                           ),
                           SizedBox(width: 4),
                           IconButton(
-                            icon: Icon(Icons.comment_bank_outlined),
+                            icon: Icon(Icons.comment),
                             onPressed: () {
                               Navigator.push(
                                 context,
