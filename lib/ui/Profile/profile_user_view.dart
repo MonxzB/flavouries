@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertest/ui/CardMostSearch/recipe_card.dart';
-import 'package:fluttertest/ui/Profile/profile_edit.dart'; // Đảm bảo rằng bạn đã có widget RecipeCard
+import 'package:fluttertest/ui/Profile/profile_edit.dart';
+import 'package:fluttertest/ui/Profile/recipe_card_profile.dart'; // Đảm bảo rằng bạn đã có widget RecipeCard
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -231,6 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
   // Hiển thị các công thức trong Grid
+  // Hiển thị các công thức trong Grid
   Widget _buildRecipeGrid(List<Map<String, dynamic>> list, bool isLoading) {
     if (isLoading) {
       return Center(child: CircularProgressIndicator());
@@ -242,26 +244,30 @@ class _ProfileScreenState extends State<ProfileScreen>
       padding: EdgeInsets.all(10),
       itemCount: list.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.75,
+        crossAxisCount: 2, // Chia cột thành 2
+        crossAxisSpacing: 10, // Khoảng cách giữa các cột
+        mainAxisSpacing: 10, // Khoảng cách giữa các hàng
+        childAspectRatio: 0.75, // Tỷ lệ chiều cao/chiều rộng của từng item
       ),
       itemBuilder: (context, index) {
         final recipe = list[index];
-        return RecipeCard(
-          imageUrl: recipe["imageUrl"],
-          title: recipe["title"],
-          description: recipe["description"],
-          ingredients: recipe["ingredients"],
-          steps: recipe["steps"],
-          kcal: recipe["kcal"],
-          time: recipe["time"],
-          name: recipe["chefName"], // Dùng tên người dùng
-          avatarUrl: recipe["chefImage"], // Dùng ảnh của người dùng
-          likes: recipe["likes"],
-          isLiked: recipe["isLiked"],
-          recipeId: recipe["id"] ?? '',
+        return Center(
+          // Đảm bảo item được căn giữa trong mỗi ô của Grid
+          child: RecipeCardProfile(
+            imageUrl: recipe["imageUrl"] ?? '',
+            title: recipe["title"] ?? '',
+            description: recipe["description"] ?? '',
+            ingredients: recipe["ingredients"],
+            steps: recipe["steps"],
+            kcal: recipe["kcal"] ?? '0',
+            time: recipe["time"] ?? '0 mins',
+            avatarUrl: recipe["userImage"] ?? '', // Dùng userImage
+            name: recipe["name"] ?? 'Unknown User', // Dùng name
+            userId: recipe["userId"] ?? 'Unknown User', // Dùng id
+            isLiked: recipe["isLiked"] ?? false,
+            likes: recipe["likes"] ?? '0',
+            recipeId: recipe["id"] ?? '',
+          ),
         );
       },
     );

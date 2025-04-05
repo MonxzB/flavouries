@@ -48,6 +48,7 @@ class RecipeListSearch extends StatelessWidget {
           time: recipe["time"] ?? '0 mins',
           name: recipe["name"] ?? 'Unknown Chef',
           avatarUrl: recipe["avatarUrl"] ?? '',
+          userId: recipe["userId"] ?? 'Unknown User', // Dùng id
           likes: recipe["likes"]?.toString() ?? '0',
           isLiked: recipe["isLiked"] ?? false,
           recipeId: recipe["id"] ?? '',

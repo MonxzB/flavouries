@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertest/ui/ChefList/detail_chef.dart';
-import 'package:fluttertest/ui/Detail/detail_recipe.dart'; // Đảm bảo bạn đã import màn hình ChefProfileScreen
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import FirebaseFirestore
 
-class RecipeCard extends StatelessWidget {
+import 'package:fluttertest/ui/Detail/detail_recipe.dart';
+import 'package:fluttertest/ui/Profile/edit_recipe_card.dart'; // Đảm bảo bạn đã import màn hình ChefProfileScreen
+
+class RecipeCardProfile extends StatelessWidget {
   final String recipeId;
   final String imageUrl;
   final String title;
@@ -17,7 +20,7 @@ class RecipeCard extends StatelessWidget {
   final bool isLiked;
   final String likes;
 
-  const RecipeCard({
+  const RecipeCardProfile({
     Key? key,
     required this.recipeId,
     required this.imageUrl,
@@ -56,6 +59,9 @@ class RecipeCard extends StatelessWidget {
                 ),
           ),
         );
+      },
+      onLongPress: () {
+        _showActionDialog(context); // Hiển thị hộp thoại khi ấn giữ
       },
       child: Container(
         width: 200,
@@ -222,5 +228,72 @@ class RecipeCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Hiển thị hộp thoại với các tùy chọn "Sửa" và "Xóa"
+  // Hiển thị hộp thoại với các tùy chọn "Sửa" và "Xóa"
+  void _showActionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Chọn hành động"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.edit),
+                title: Text("Sửa công thức"),
+                onTap: () {
+                  Navigator.pop(context); // Đóng hộp thoại
+                  // Điều hướng đến màn hình sửa công thức
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => EditRecipeCard(
+                            recipeId: recipeId, // Truyền ID công thức
+                            title: title,
+                            description: description,
+                            ingredients: ingredients,
+                            steps: steps,
+                            imageUrl: imageUrl,
+                            kcal: kcal,
+                            time: time,
+                            avatarUrl: avatarUrl,
+                          ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete),
+                title: Text("Xóa công thức"),
+                onTap: () {
+                  Navigator.pop(context); // Đóng hộp thoại
+                  // Xóa công thức khỏi Firestore
+                  _deleteRecipe(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Hàm xóa công thức
+  Future<void> _deleteRecipe(BuildContext context) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('recipes')
+          .doc(recipeId) // Sử dụng recipeId của công thức
+          .delete();
+
+      // Sau khi xóa, quay lại màn hình trước đó
+      Navigator.pop(context);
+    } catch (e) {
+      print("Lỗi khi xóa công thức: $e");
+    }
   }
 }

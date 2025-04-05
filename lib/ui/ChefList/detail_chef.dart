@@ -4,17 +4,19 @@ import 'package:fluttertest/ui/ChefList/list_recipe_chef.dart'; // Import nếu 
 class ChefProfileScreen extends StatelessWidget {
   final String name;
   final String imageUrl;
-  final String userId; // Thay từ chefId thành userId
+  final String userId;
 
   const ChefProfileScreen({
     Key? key,
     required this.name,
     required this.imageUrl,
-    required this.userId, // Đảm bảo truyền userId vào
+    required this.userId,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    print("userId: $userId");
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(

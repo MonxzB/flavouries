@@ -46,7 +46,7 @@ class _RecipeListViewState extends State<RecipeListView> {
                   [];
 
               final userId = data['user_id'];
-              print("user_id: $userId");
+              print("user_id: $data");
               return FirebaseFirestore.instance
                   .collection('users')
                   .doc(userId.toString())
@@ -132,6 +132,7 @@ class _RecipeListViewState extends State<RecipeListView> {
                       time: recipe["time"] ?? '0 mins',
                       avatarUrl: recipe["userImage"] ?? '', // Dùng userImage
                       name: recipe["name"] ?? 'Unknown User', // Dùng name
+                      userId: recipe["userId"] ?? 'Unknown User', // Dùng id
                       isLiked: recipe["isLiked"] ?? false,
                       likes: recipe["likes"] ?? '0',
                       recipeId: recipe["id"] ?? '',

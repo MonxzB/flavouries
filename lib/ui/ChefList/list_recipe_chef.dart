@@ -13,7 +13,7 @@ class RecipeListViewChef extends StatelessWidget {
       stream:
           FirebaseFirestore.instance
               .collection('recipes')
-              .where('user_id', isEqualTo: userId) // Lọc theo chefId
+              .where('user_id', isEqualTo: userId) // Lọc theo userID
               .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -51,9 +51,7 @@ class RecipeListViewChef extends StatelessWidget {
               final userDoc =
                   await FirebaseFirestore.instance
                       .collection('users')
-                      .doc(
-                        userId.toString(),
-                      ) // Dùng chef_id để truy vấn document của người dùng
+                      .doc(userId)
                       .get();
 
               String userName = 'User Unknown';
@@ -85,9 +83,7 @@ class RecipeListViewChef extends StatelessWidget {
         return SizedBox(
           height: 245,
           child: FutureBuilder<List<Map<String, dynamic>>>(
-            future: Future.wait(
-              recipes!,
-            ), // Chờ đợi các truy vấn trả về kết quả
+            future: Future.wait(recipes!),
             builder: (context, futureSnapshot) {
               if (futureSnapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -115,8 +111,9 @@ class RecipeListViewChef extends StatelessWidget {
                       steps: recipe["steps"],
                       kcal: recipe["kcal"] ?? '0',
                       time: recipe["time"] ?? '0 mins',
-                      avatarUrl: recipe["avatarUrl"] ?? '',
+                      avatarUrl: recipe["chefImage"] ?? '',
                       name: recipe["name"] ?? 'Unknown User',
+                      userId: recipe["id"] ?? 'Unknown User', // Dùng id
                       isLiked: recipe["isLiked"] ?? false,
                       likes: recipe["likes"] ?? '0',
                       recipeId: recipe["id"] ?? '',
