@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // For Firestore
-import 'package:fluttertest/ui/main_screen.dart'; // Assuming your main screen
-import 'package:fluttertest/Screens/home_screen.dart'; // Your Home screen
+import 'package:fluttertest/ui/main_screen.dart'; // Main screen
+import 'package:fluttertest/Screens/home_screen.dart'; // Home screen
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -31,6 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String password = _passwordController.text.trim();
     String name = _nameController.text.trim();
 
+    // Validate email
     if (!_validateEmail(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng nhập địa chỉ email hợp lệ')),
@@ -57,6 +58,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // Lưu thông tin người dùng vào Firestore
         await FirebaseFirestore.instance.collection('users').doc(user!.uid).set(
           {
+            'user_id':
+                user.uid, // Lưu user_id là UID của Firebase Authentication
             'name': name,
             'email': email,
             'avatar_url': user.photoURL ?? '', // Nếu có URL avatar, lưu vào đây

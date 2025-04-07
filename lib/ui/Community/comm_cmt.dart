@@ -126,10 +126,13 @@ class _CommentScreenState extends State<CommentScreen> {
                                   CircleAvatar(
                                     radius: 16,
                                     backgroundColor: Colors.grey.shade300,
-                                    child: Icon(
-                                      Icons.person,
-                                      color: Colors.white,
-                                    ),
+                                    backgroundImage:
+                                        userData.containsKey("avatar_url") &&
+                                                userData["avatar_url"] != null
+                                            ? NetworkImage(
+                                              userData["avatar_url"],
+                                            ) // Use avatar_url from userData
+                                            : null, // If no avatar_url, keep default behavior
                                   ),
                                   SizedBox(width: 8),
                                   Text(
