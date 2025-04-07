@@ -163,6 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       final fetched =
           recipeSnap.docs.map((doc) {
             final data = doc.data();
+            final userId = data["user_id"];
 
             return {
               "imageUrl": data["image_url"] ?? '',

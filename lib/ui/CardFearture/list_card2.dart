@@ -34,36 +34,41 @@ class _ListCard2State extends State<ListCard2> {
 
         // Lấy dữ liệu từ snapshot và map thành list recipes
         final recipes =
-            snapshot.data!.docs.map((doc) {
-              final data = doc.data() as Map<String, dynamic>;
+            snapshot.data!.docs
+                .map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
 
-              final ingredients =
-                  (data['ingredients'] as List?)
-                      ?.map((e) => Map<String, String>.from(e))
-                      .toList() ??
-                  [];
+                  final ingredients =
+                      (data['ingredients'] as List?)
+                          ?.map((e) => Map<String, String>.from(e))
+                          .toList() ??
+                      [];
 
-              final steps =
-                  (data['steps'] as List?)
-                      ?.map((e) => Map<String, dynamic>.from(e))
-                      .toList() ??
-                  [];
+                  final steps =
+                      (data['steps'] as List?)
+                          ?.map((e) => Map<String, dynamic>.from(e))
+                          .toList() ??
+                      [];
 
-              return {
-                'id': doc.id,
-                'imageUrl': data['image_url'] ?? '',
-                'title': data['title'] ?? '',
-                'description': data['description'] ?? '',
-                'ingredients': ingredients,
-                'steps': steps,
-                'kcal': data['calories']?.toString() ?? '0',
-                'time': '${steps.length} mins',
-                'avatar_url': 'https://i.pravatar.cc/100?u=${data['user_id']}',
-                'name': 'Chef ${data['user_id'] ?? 'Unknown'}',
-                'isLiked': false,
-                'likes': 0,
-              };
-            }).toList();
+                  return {
+                    'id': doc.id,
+                    'imageUrl': data['image_url'] ?? '',
+                    'title': data['title'] ?? '',
+                    'description': data['description'] ?? '',
+                    'ingredients': ingredients,
+                    'steps': steps,
+                    'kcal': data['calories']?.toString() ?? '0',
+                    'time': '${steps.length} mins',
+                    'avatar_url':
+                        'https://i.pravatar.cc/100?u=${data['user_id']}',
+                    'name': 'Chef ${data['user_id'] ?? 'Unknown'}',
+                    'isLiked': false,
+                    'likes': 0,
+                  };
+                })
+                .toList()
+                .reversed
+                .toList();
 
         // Hiển thị dữ liệu
         return SizedBox(

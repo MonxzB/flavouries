@@ -136,41 +136,41 @@ class _RecipeVideoScreenState extends State<RecipeVideoScreen> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundImage: NetworkImage(chefAvatar),
-                            radius: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          Text(
-                            chefName,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            icon: Icon(
-                              isLiked ? Icons.favorite : Icons.favorite_border,
-                              color: isLiked ? Colors.red : Colors.black,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                isLiked = !isLiked;
-                              });
-                            },
-                          ),
-                          Text(
-                            "273 Likes",
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 16),
+                    //   child: Row(
+                    //     children: [
+                    //       CircleAvatar(
+                    //         backgroundImage: NetworkImage(chefAvatar),
+                    //         radius: 20,
+                    //       ),
+                    //       const SizedBox(width: 10),
+                    //       Text(
+                    //         chefName,
+                    //         style: TextStyle(
+                    //           fontSize: 16,
+                    //           fontWeight: FontWeight.bold,
+                    //         ),
+                    //       ),
+                    //       const Spacer(),
+                    //       IconButton(
+                    //         icon: Icon(
+                    //           isLiked ? Icons.favorite : Icons.favorite_border,
+                    //           color: isLiked ? Colors.red : Colors.black,
+                    //         ),
+                    //         onPressed: () {
+                    //           setState(() {
+                    //             isLiked = !isLiked;
+                    //           });
+                    //         },
+                    //       ),
+                    //       Text(
+                    //         "273 Likes",
+                    //         style: TextStyle(color: Colors.grey),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                     const SizedBox(height: 10),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),

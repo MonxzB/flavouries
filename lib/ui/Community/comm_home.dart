@@ -155,8 +155,7 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
   // Widget to display each post
   Widget _buildPostItem(DocumentSnapshot post) {
     Map<String, dynamic> postData = post.data() as Map<String, dynamic>;
-    String recipeId =
-        postData['recipe_id'] ?? 'Unknown Recipe ID'; // Default nếu không có
+    String recipeId = post.id; // Sử dụng post.id làm recipe_id
 
     return FutureBuilder<DocumentSnapshot>(
       future:
@@ -190,7 +189,7 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
-            color: Colors.white, // Màu nền là trắng
+            color: Colors.white,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -212,7 +211,7 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  postData["title"] ?? "No Title",
+                                  userName,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
@@ -289,20 +288,28 @@ class _FlavouriesScreenState extends State<FlavouriesScreen> {
                           IconButton(
                             icon: Icon(Icons.comment),
                             onPressed: () {
+                              // Khi nhấn vào bình luận, chuyển đến CommentScreen
+                              print("post data: $postData ");
+                              print("recipeId: $recipeId ");
+                              // String recipeId =
+                              //     post.id;
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder:
-                                      (context) =>
-                                          CommentScreen(postData: postData),
+                                      (context) => CommentScreen(
+                                        postData: postData,
+                                        recipeId: recipeId,
+                                        // 'recipe_id': recipeId,
+                                      ), // Truyền postData vào CommentScreen
                                 ),
                               );
                             },
                           ),
-                          Text(
-                            commentCount.toString(),
-                            style: TextStyle(fontSize: 14),
-                          ),
+                          // Text(
+                          //   commentCount.toString(),
+                          //   style: TextStyle(fontSize: 14),
+                          // ),
                           SizedBox(width: 4),
                           IconButton(
                             icon: Icon(Icons.share),

@@ -9,7 +9,6 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -39,8 +38,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
           setState(() {
             _nameController.text = userData['name'] ?? ''; // Lấy tên người dùng
-            _phoneController.text =
-                userData['phone'] ?? ''; // Lấy số điện thoại
             _emailController.text = userData['email'] ?? ''; // Lấy email
             userAvatar = userData['avatar_url']; // Lấy ảnh đại diện
           });
@@ -62,7 +59,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             .doc(user.uid)
             .update({
               'name': _nameController.text,
-              'phone': _phoneController.text,
               'email': _emailController.text,
               // 'avatar_url': userAvatar, // Nếu bạn muốn cập nhật ảnh đại diện
             });
@@ -111,7 +107,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
               // 📌 Các ô nhập liệu
               _buildTextField("Tên người dùng", _nameController),
-              _buildTextField("Số điện thoại", _phoneController),
               _buildTextField("Email", _emailController),
               _buildTextField(
                 "Password",

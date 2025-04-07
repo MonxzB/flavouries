@@ -4,8 +4,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class CommentScreen extends StatefulWidget {
   final Map<String, dynamic> postData;
+  final String recipeId;
 
-  const CommentScreen({Key? key, required this.postData}) : super(key: key);
+  const CommentScreen({
+    Key? key,
+    required this.postData,
+    required this.recipeId,
+  }) : super(key: key);
 
   @override
   _CommentScreenState createState() => _CommentScreenState();
@@ -16,10 +21,12 @@ class _CommentScreenState extends State<CommentScreen> {
 
   // Fetch the comments for the post from Firestore
   Stream<QuerySnapshot> getComments() {
-    print("Post Data in CommentScreen: ${widget.postData}");
+    String recipeId = widget.recipeId; // Lấy recipeId từ tham số
+    print("Fetching comments for Recipe ID: $recipeId");
+
     return FirebaseFirestore.instance
         .collection('recipe_comments')
-        .where('recipe_id', isEqualTo: widget.postData['recipe_id'].toString())
+        .where('recipe_id', isEqualTo: recipeId) // Dùng recipeId truyền vào
         .orderBy('created_at', descending: true)
         .snapshots();
   }
@@ -28,11 +35,10 @@ class _CommentScreenState extends State<CommentScreen> {
   void _addComment(String text) async {
     if (text.isNotEmpty) {
       String? userId = FirebaseAuth.instance.currentUser?.uid;
-      if (userId == null) return; // Xử lý nếu người dùng chưa đăng nhập
+      if (userId == null) return; // Nếu người dùng chưa đăng nhập thì dừng lại
 
       await FirebaseFirestore.instance.collection('recipe_comments').add({
-        'recipe_id':
-            widget.postData['recipe_id'], // Sử dụng recipe_id từ postData
+        'recipe_id': widget.recipeId, // Dùng recipeId từ tham số
         'user_id': userId,
         'content': text,
         'created_at': Timestamp.now(), // Thời gian hiện tại
@@ -50,8 +56,6 @@ class _CommentScreenState extends State<CommentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("Post Data in CommentScreen: ${widget.postData}");
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -93,73 +97,97 @@ class _CommentScreenState extends State<CommentScreen> {
                     var commentData =
                         comments[index].data() as Map<String, dynamic>;
 
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 16,
-                                backgroundColor: Colors.grey.shade300,
-                                child: Icon(Icons.person, color: Colors.white),
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                commentData["user_id"] ?? "Anonymous",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                _formatTimestamp(commentData["created_at"]),
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 6),
-                          Text(
-                            commentData["content"] ?? "No Content",
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          SizedBox(height: 4),
-                          // Optional: Display image if available
-                          if (commentData.containsKey("image_url") &&
-                              commentData["image_url"] != "")
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.network(
-                                  commentData["image_url"]!,
-                                  width: double.infinity,
-                                  height: 150,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                          SizedBox(height: 4),
+                    // Lấy user_id từ commentData và truy vấn bảng users để lấy tên người dùng
+                    String userId = commentData["user_id"] ?? "";
+                    return FutureBuilder<DocumentSnapshot>(
+                      future:
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(userId)
+                              .get(),
+                      builder: (context, userSnapshot) {
+                        if (!userSnapshot.hasData) {
+                          return Center(child: CircularProgressIndicator());
+                        }
 
-                          // ❤️ Like Button
-                          Row(
+                        var userData =
+                            userSnapshot.data!.data() as Map<String, dynamic>;
+                        String userName =
+                            userData["name"] ??
+                            "Anonymous"; // Lấy tên người dùng từ bảng users
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.favorite_border,
-                                color: Color(0xff42423D),
-                                size: 18,
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: Colors.grey.shade300,
+                                    child: Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    userName, // Hiển thị tên người dùng từ bảng users
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    _formatTimestamp(commentData["created_at"]),
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(width: 4),
-                              Text("Thích", style: TextStyle(fontSize: 12)),
+                              SizedBox(height: 6),
+                              Text(
+                                commentData["content"] ?? "No Content",
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              SizedBox(height: 4),
+                              // Optional: Display image if available
+                              if (commentData.containsKey("image_url") &&
+                                  commentData["image_url"] != "")
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(
+                                      commentData["image_url"]!,
+                                      width: double.infinity,
+                                      height: 150,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                              SizedBox(height: 4),
+
+                              // ❤️ Like Button
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.favorite_border,
+                                    color: Color(0xff42423D),
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text("Thích", style: TextStyle(fontSize: 12)),
+                                ],
+                              ),
                             ],
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     );
                   },
                 );

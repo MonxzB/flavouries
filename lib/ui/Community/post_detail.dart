@@ -68,6 +68,17 @@ class PostDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  SizedBox(height: 20),
+                  Center(
+                    child: Text(
+                      postData['description'] ?? 'Không có tiêu đề',
+                      style: TextStyle(
+                        fontSize: 18,
+                        // fontWeight: FontWeight.bold,
+                        color: Color(0xff111907),
+                      ),
+                    ),
+                  ),
 
                   SizedBox(height: 12),
 
